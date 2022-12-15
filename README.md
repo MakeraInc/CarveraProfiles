@@ -41,26 +41,85 @@ Checkout the [Releases Page](https://github.com/MakeraInc/CarveraProfiles/releas
 5. Repeat importing the "Carvera 4-axis.mch" file.
 
 ## Install Tool Library
-1. Navigate to the Manufacture Workspace.
-2. Under the Manage group, select the Post Library button.
-3. Navigate to “All->Local”.
-4. Right click the “Local” folder and click the “New folder” button, create a new folder named “Carvera Tools”.
-5. Right click the new folder and then click the “Import libraries” button
-6. Select the “Example Tools.tools, Spare Tools.tools, PCB Tools.tools” files and finish the importing.
+1. Under the Manage group, select the Post Library button.
 
-Using Fusion360 Profiles
-1. When creating setups, select 'Makera Carvera 3-axis' or 'makera Carvera 4-axis' machine.
+![F360 Tool Library](/img/F360-Tool-Library.png)
+
+2. Navigate to "All->Local".
+
+3. Right click the "Local" folder and click the "New folder" button, create a new folder named "Carvera Tools".
+
+4. Right click the new folder and then click the "Import libraries" button
+
+![F360 Tool Import](/img/F360-Tool-Import.png)
+
+5. Select the "Example Tools.tools, Spare Tools.tools, PCB Tools.tools" files and finish the importing.
+
+## Using Fusion360 Profiles
+1. When creating setups, select the "Makera Carvera 3-axis" or "makera Carvera 4-axis" machine.
+
+![F360 Setup](/img/F360-Setup.png)
+
 2. When doing post process, select the Makera Carvera machine and Carvera post file.
 
+![F360 Post Process](/img/F360-Post-Process.png)
 
 
-## Android Installation
 
-1. Open your Android device's file explorer app. ...
-2. Locate your APK file in your file explorer app and select it.
-3. The APK installer menu will appear—tap Install. ...
-4. Allow time for the app to install.
-5. Tap Done or Open once the installation is complete.
+
+----
+# VCarve Desktop
+
+## Install PostProcessor
+1. Start VCarve Desktop
+
+2. Navigate to the “Machine” menu and click “Post-Processor Management”.
+
+3. Click the “Install Post-Processor” button.
+
+4. Select and import the “Carvera ATC (mm) (!.cnc).pp” file.
+
+5. Repeat importing the “Carvera Wrap X2A ATC (mm) (!.cnc).pp” file and “Carvera Laser (mm) (!.cnc).pp" file.
+
+## Create Machine
+1. Navigate to the “Machine” menu and click “Machine Configuration Management”.
+
+2. Click the “Add a custom machine” button.
+
+3. Fill in the information as shown below.
+
+4. Select the post processors just imported and set the “Carvera ATC (mm)(*.cnc)” as default.
+
+5. Click “Apply” then “OK”  to save the configuration.
+
+## Install Tool Database
+1. Navigate to the “Toolpaths” menu and click “Tool Database”.
+
+2. Click the “Import a tool database” button.
+
+3. Select the “CarveraTools.vtdb” file.
+
+4. Click the “Merge” button on the popup confirm dialog and finish the import.
+
+## Using VCarve Desktop Profiles
+When saving Tool paths, select Carvera Desktop CNC Machine and a suitable post processor for your job.
+
+
+
+----
+# LightBurn
+
+## Setup Device
+1. Start LightBurn.
+
+2. Click the “Device” button.
+
+3. Click the “Import” button in the popup dialog.
+
+4. Select the “LightBurn.lbdev” file and finish importing the Makera Carvera device.
+
+## Using LightBurn Profiles
+When saving GCode, select “Makera” as the current device.
 
 
 
