@@ -25,25 +25,34 @@ Checkout the [Releases Page](https://github.com/MakeraInc/CarveraProfiles/releas
 
 6. Select the "Carvera.cps" file and finish the importing.
 
-## Mac/OSX Installation
-![Mac OS Setup](/img/Mac-Setup.png)
+## Install Machine
+1. Under the Manage group, select the Machine Library button.
 
-1. Double-click the dmg file to mount it 
-3. Double-click the LightBurn.dmg file to mount it
-4. Drag the CarveraController application into your applications folder
-5. Launch CarveraController from the launcher as normal
-6. You can now eject the DMG file (drag it to the trash bin)
+![F360 Machine Library](/img/F360-Machine-Library.png)
 
-### Solution for APP damage error
-![APP Damage](/img/APP-Damage-Error.png)
+2. Navigate to the "My Machines->Local" folder.
 
-If you encounter the warning as above, open the terminal window and execute the command below:
+3. Click the "Import" button.
 
-**sudo xattr -r -d com.apple.quarantine /Applications/CarveraController.app**
+![F360 Machine Import](/img/F360-Machine-Import.png)
 
-![APP Damage Solution](/img/APP-Damage-solution.png)
+4. Select the "Carvera 3-axis.mch" file and finish the importing.
 
-Reopen the CarveraController application, it should be OK now.
+5. Repeat importing the "Carvera 4-axis.mch" file.
+
+## Install Tool Library
+1. Navigate to the Manufacture Workspace.
+2. Under the Manage group, select the Post Library button.
+3. Navigate to “All->Local”.
+4. Right click the “Local” folder and click the “New folder” button, create a new folder named “Carvera Tools”.
+5. Right click the new folder and then click the “Import libraries” button
+6. Select the “Example Tools.tools, Spare Tools.tools, PCB Tools.tools” files and finish the importing.
+
+Using Fusion360 Profiles
+1. When creating setups, select 'Makera Carvera 3-axis' or 'makera Carvera 4-axis' machine.
+2. When doing post process, select the Makera Carvera machine and Carvera post file.
+
+
 
 ## Android Installation
 
