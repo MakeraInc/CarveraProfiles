@@ -9,12 +9,13 @@ Checkout the [Releases Page](https://github.com/MakeraInc/CarveraProfiles/releas
 ## Install PostProcessor
 1. Start Fusion 360.
 2. Navigate to the Manufacture Workspace.
+![F360 Workspace](/img/F360-Workspace.png)
 3. Under the Manage group, select the Post Library button.
-![F360 Post Navi](/img/F360-Post-Navi.png)
-4. Navigate to ‘My Posts->Local’ folder.
-5. Click the ‘Import’ button.
+![F360 Post Library](/img/F360-Post-Library.png)
+4. Navigate to the "My Posts->Local" folder.
+5. Click the "Import" button.
 ![F360 Post Import](/img/F360-Post-Import.png)
-6. Select the “Carvera.cps” file and finish the importing.
+6. Select the "Carvera.cps" file and finish the importing.
 
 ## Mac/OSX Installation
 ![Mac OS Setup](/img/Mac-Setup.png)
