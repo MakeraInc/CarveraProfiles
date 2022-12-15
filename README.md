@@ -71,39 +71,47 @@ Checkout the [Releases Page](https://github.com/MakeraInc/CarveraProfiles/releas
 # VCarve Desktop
 
 ## Install PostProcessor
-1. Start VCarve Desktop
+1. Start VCarve Desktop.
 
-2. Navigate to the “Machine” menu and click “Post-Processor Management”.
+2. Navigate to the "Machine" menu and click "Post-Processor Management".
 
-3. Click the “Install Post-Processor” button.
+3. Click the "Install Post-Processor" button.
 
-4. Select and import the “Carvera ATC (mm) (!.cnc).pp” file.
+![VCarve Post](/img/VCarve-Post.png)
 
-5. Repeat importing the “Carvera Wrap X2A ATC (mm) (!.cnc).pp” file and “Carvera Laser (mm) (!.cnc).pp" file.
+4. Select and import the "Carvera ATC (mm) (!.cnc).pp" file.
+
+5. Repeat importing the "Carvera Wrap X2A ATC (mm) (!.cnc).pp" file and "Carvera Laser (mm) (!.cnc).pp" file.
 
 ## Create Machine
-1. Navigate to the “Machine” menu and click “Machine Configuration Management”.
+1. Navigate to the "Machine" menu and click "Machine Configuration Management".
 
-2. Click the “Add a custom machine” button.
+2. Click the "Add a custom machine" button.
 
 3. Fill in the information as shown below.
 
-4. Select the post processors just imported and set the “Carvera ATC (mm)(*.cnc)” as default.
+![VCarve Machine](/img/VCarve-Machine.png)
 
-5. Click “Apply” then “OK”  to save the configuration.
+4. Select the post processors just imported and set the "Carvera ATC (mm)(*.cnc)" as default.
+
+5. Click "Apply" then "OK" to save the configuration.
 
 ## Install Tool Database
-1. Navigate to the “Toolpaths” menu and click “Tool Database”.
+1. Navigate to the "Toolpaths" menu and click "Tool Database".
 
-2. Click the “Import a tool database” button.
+2. Click the "Import a tool database" button.
 
-3. Select the “CarveraTools.vtdb” file.
+![VCarve Tool Import](/img/VCarve-Tool-Import.png)
 
-4. Click the “Merge” button on the popup confirm dialog and finish the import.
+3. Select the "CarveraTools.vtdb" file.
+
+4. Click the "Merge" button on the popup confirm dialog and finish the import.
+
+![VCarve Tool Merge](/img/VCarve-Tool-Merge.png)
 
 ## Using VCarve Desktop Profiles
 When saving Tool paths, select Carvera Desktop CNC Machine and a suitable post processor for your job.
-
+![VCarve Save](/img/VCarve-Save.png)
 
 
 ----
@@ -112,14 +120,18 @@ When saving Tool paths, select Carvera Desktop CNC Machine and a suitable post p
 ## Setup Device
 1. Start LightBurn.
 
-2. Click the “Device” button.
+2. Click the "Device" button.
 
-3. Click the “Import” button in the popup dialog.
+3. Click the "Import" button in the popup dialog.
 
-4. Select the “LightBurn.lbdev” file and finish importing the Makera Carvera device.
+![LightBurn Device](/img/LightBurn-device.png)
+
+4. Select the "LightBurn.lbdev" file and finish importing the Makera Carvera device.
 
 ## Using LightBurn Profiles
-When saving GCode, select “Makera” as the current device.
+When saving GCode, select "Makera" as the current device.
+
+![LightBurn Save](/img/LightBurn-Save.png)
 
 
 
