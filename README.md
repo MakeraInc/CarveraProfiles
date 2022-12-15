@@ -107,7 +107,6 @@ Checkout the [Releases Page](https://github.com/MakeraInc/CarveraProfiles/releas
 
 4. Click the "Merge" button on the popup confirm dialog and finish the import.
 
-![VCarve Tool Merge](/img/VCarve-Tool-Merge.png)
 
 ## Using VCarve Desktop Profiles
 When saving Tool paths, select Carvera Desktop CNC Machine and a suitable post processor for your job.
