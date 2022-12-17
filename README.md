@@ -41,7 +41,7 @@ Checkout the [Releases Page](https://github.com/MakeraInc/CarveraProfiles/releas
 5. Repeat importing the "Carvera 4-axis.mch" file.
 
 ## Install Tool Library
-1. Under the Manage group, select the Post Library button.
+1. Under the Manage group, select the Tool Library button.
 
 ![F360 Tool Library](/img/F360-Tool-Library.png)
 
