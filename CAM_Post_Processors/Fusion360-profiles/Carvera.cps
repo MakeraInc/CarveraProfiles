@@ -23,6 +23,33 @@ setCodePage("ascii");
 capabilities = CAPABILITY_MILLING | CAPABILITY_JET | CAPABILITY_MACHINE_SIMULATION;
 tolerance = spatial(0.002, MM);
 
+///////////////////////////////////////////////////////////////////////////////
+//                        MANUAL NC COMMANDS
+//
+// The following ACTION commands are supported by this post.
+//      
+//     RapidA:#             -rapids the a axis to degree position
+//     SaferA:#             -Moves the z axis up to its clearance position then moves the a axis
+//     SafeZ                -Go to a safe z height (same height as the clearance position)
+//     SpindleOff           -turns the spindle off
+//     Clearance            -goes to carvea clearance position
+//     ClearAutoLevel       -clears the auto level data from the machine
+//     ResetFeedOverride    -resets the spindle override value to 100%
+//     FeedOverride:#       -sets the feed override to a given percent. Useful for vetting new programs as well as speeding up an entire set of operations quickly
+//     AirOn                -Turns the compressed air on
+//     AirOff               -Turns the compressed air off
+//     VacOn                -Turns on the vacuum
+//     VacOff               -Turns off the vacuum
+//     AutoVacOn            -turns on auto vacuum
+//     AutoVacOff           -turns off auto vacuum
+//     LightOn              -turns on the light
+//     LightOff             -turns off the light
+//     ShrinkA              -Shrinks the A axis with offset 0, so A365 will turn into A5
+
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
 minimumChordLength = spatial(0.25, MM);
 minimumCircularRadius = spatial(0.01, MM);
 maximumCircularRadius = spatial(1000, MM);
@@ -214,6 +241,85 @@ function writeToolBlock() {
 */
 function writeComment(text) {
   writeln(formatComment(text));
+}
+
+/** AllowCustomCodeToBeWritten -Fae*/
+function onPassThrough(text) {
+  writeBlock(text);
+}
+
+/** Custom Actions -Fae*/
+function onParameter(name, value) {
+  var invalid = false;
+  if (name == "action") {
+    
+    if (String(value).toUpperCase() == "SPINDLEOFF"){
+      writeBlock("M5 (Spindle Off)")
+    } else if (String(value).toUpperCase() == "CLEARANCE"){
+      writeBlock("G28 (Go to clearance)")
+    } else if (String(value).toUpperCase() == "CLEARAUTOLEVEL"){
+      writeBlock("M370 (clear autolevel)")
+    } else if (String(value).toUpperCase() == "RESETFEEDOVERRIDE"){
+      writeBlock("M220 S100 (Reset Feed Speed override)")
+    } else if (String(value).toUpperCase() == "AIRON"){
+      writeBlock("M7 (Compressed Air On)")
+    } else if (String(value).toUpperCase() == "AIROFF"){
+      writeBlock("M9 (Compressed Air Off)")
+    } else if (String(value).toUpperCase() == "VACON"){
+      writeBlock("M801 S100 (Vacuum On)")
+    } else if (String(value).toUpperCase() == "VACOFF"){
+      writeBlock("M802 (Vacuum Off)")
+    } else if (String(value).toUpperCase() == "AUTOVACON"){
+      writeBlock("M331 (Turn On Auto Vacuum)")
+    } else if (String(value).toUpperCase() == "AUTOVACOFF"){
+      writeBlock("M332 (Turn Off Auto Vacuum)")
+    } else if (String(value).toUpperCase() == "LIGHTON"){
+      writeBlock("M821 (Turn On Light)")
+    } else if (String(value).toUpperCase() == "LIGHTOFF"){
+      writeBlock("M822 (Turn Off Light)")
+    } else if (String(value).toUpperCase() == "SHRINKA"){
+      writeBlock("G92.4 A0 S0 (shrink the a axis so A365 becomes A5)")
+    } else if (String(value).toUpperCase() == "SAFEZ"){
+      writeBlock("G53 G0 Z -2. (Goto Safe Height In Z)")
+    } else {
+      var sText1 = String(value);
+      var sText2 = new Array();
+      sText2 = sText1.split(":");
+      if (sText2.length == 2) {
+        if (sText2[0].toUpperCase() == "RAPIDA") {
+          if (sText2[1].match(/^-?\d+$/)){
+            writeBlock("G0A"+sText2[1] + "(Rapid movement on a axis)")
+          } else{
+            invalid = true;
+          }
+        
+        } else if (sText2[0].toUpperCase() == "SAFERA") {
+          if (sText2[1].match(/^-?\d+$/)){
+            writeBlock("G53 G0 Z -2. (Goto Safe Height In Z)")
+            writeBlock("G0A"+sText2[1] + "(Rapid movement on a axis)")
+          } else{
+            invalid = true;
+          }
+        } else if (sText2[0].toUpperCase() == "FEEDOVERRIDE") {
+          if (sText2[1].match(/^-?\d+$/)){
+            writeBlock("M220 S"+sText2[1] + "(Globally sets the feed speed to "+ sText2[1] +" percent. Useful for vetting a program the first time you run it. Remember to run M220 S100 when you are done with the program or restart the machine)")
+          } else{
+            invalid = true;
+          } 
+        }
+
+
+
+      } else {
+        invalid = true;
+      }
+
+    }
+    if (invalid) {
+      error(localize("Invalid action parameter: ") + sText2[0] + ":" + sText2[1]);
+      return;
+    }
+  }
 }
 
 // Start of machine configuration logic
@@ -812,7 +918,7 @@ function onDwell(seconds) {
     warning(localize("Dwelling time is out of range."));
   }
   seconds = clamp(0.001, seconds, 99999.999);
-  writeBlock(gFormat.format(4), "P" + secFormat.format(seconds));
+  writeBlock(gFormat.format(4), "P" + secFormat.format(seconds) + "(pause for "+ secFormat.format(seconds) +"seconds)");
 }
 
 function onSpindleSpeed(spindleSpeed) {
@@ -1007,11 +1113,21 @@ function onCommand(command) {
     writeBlock(mFormat.format(0));
     forceSpindleSpeed = true;
     forceCoolant = true;
+    writeComment("Optional Stop End");
     return;
   case COMMAND_OPTIONAL_STOP:
-    writeBlock(mFormat.format(1));
+    writeComment("Optional");
+    writeComment("Stop");
+    writeComment("Start");
+    writeBlock(mFormat.format(5));
+    writeBlock("G28");
+    writeBlock(mFormat.format(27));
+
+    writeBlock(mFormat.format(5));
+    writeBlock(mFormat.format(600));
     forceSpindleSpeed = true;
     forceCoolant = true;
+    writeComment("Optional Stop End");
     return;
   case COMMAND_START_SPINDLE:
     onCommand(tool.clockwise ? COMMAND_SPINDLE_CLOCKWISE : COMMAND_SPINDLE_COUNTERCLOCKWISE);
@@ -1023,6 +1139,7 @@ function onCommand(command) {
   case COMMAND_BREAK_CONTROL:
     return;
   case COMMAND_TOOL_MEASURE:
+    writeBlock(mFormat.format(490));
     return;
   }
 
