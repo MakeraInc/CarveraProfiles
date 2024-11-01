@@ -515,6 +515,9 @@ function onOpen() {
       for (var i = 0; i < tools.getNumberOfTools(); ++i) {
         var tool = tools.getTool(i);
         var comment = "T" + toolFormat.format(tool.number) + "  " +
+          tool.description + "  " +
+          tool.vendor + "  " +
+          tool.productId + "  " +
           "D=" + xyzFormat.format(tool.diameter) + " " +
           localize("CR") + "=" + xyzFormat.format(tool.cornerRadius);
         if ((tool.taperAngle > 0) && (tool.taperAngle < Math.PI)) {
@@ -1110,6 +1113,7 @@ var mapCommand = {
 function onCommand(command) {
   switch (command) {
   case COMMAND_STOP:
+    
     writeBlock(mFormat.format(0));
     forceSpindleSpeed = true;
     forceCoolant = true;
