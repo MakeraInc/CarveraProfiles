@@ -136,6 +136,14 @@ properties = {
     value: "none",
     scope: "post"
   },
+  splitFileHeader: {
+    title      : "Write Tool# and Header To Each Split By Toolpath File",
+    description: "Write Tool# and Header To Each Split By Toolpath File",
+    group      : "preferences",
+    type       : "boolean",
+    value: true,
+    scope: "post"
+  },
     manualToolChangeBehavior: {
     title      : "Manual Tool Change Behavior",
     description: "If you are using the Carvera Air, choose the Carvera Air option. If you are using the carvera community firmware, that option will allow you to use tools 0-99. If you are using the stock carvera firmware on the non air variant, choose the fusion manual tool changes to generate tool changes when a tool number is greater than 6, the shank size changes, or the tool is marked for manual tool change. If you want the default behavior for the Carvera where it alarms on any tool number greater than 6, choose the first option",
@@ -748,7 +756,7 @@ function parseTLO(comment) {
 function onSection() {
   var insertToolCall = isFirstSection() ||
     currentSection.getForceToolChange && currentSection.getForceToolChange() ||
-    (tool.number != getPreviousSection().getTool().number);
+    (tool.number != getPreviousSection().getTool().number) || (getProperty("splitFile") == "toolpath" && getProperty("splitFileHeader"));
 
   var splitHere = getProperty("splitFile") == "toolpath" || (getProperty("splitFile") == "tool" && insertToolCall);
 
@@ -804,13 +812,6 @@ function onSection() {
       subprogram = programName + "_" + (subprograms.length + 1) + "_" + "T" + tool.number;
     }
 
-    // var index = 0;
-    // var _subprogram = subprogram;
-    // while (subprograms.indexOf(_subprogram) !== -1) {
-    //   index++;
-    //   _subprogram = subprogram + "_" + index;
-    // }
-    // subprogram = _subprogram;
     subprograms.push(subprogram);
 
     var path = FileSystem.getCombinedPath(FileSystem.getFolderPath(getOutputPath()), String(subprogram).replace(/[<>:"/\\|?*]/g, "") + "." + extension);
@@ -825,21 +826,20 @@ function onSection() {
     if (programComment) {
       writeComment(programComment);
     }
-
-    // absolute coordinates and feed per min
-    writeBlock(gAbsIncModal.format(90), gFeedModeModal.format(94));
-    writeBlock(gPlaneModal.format(17));
+    // Absolute coordinates and feed per min
+    writeBlock("G90 G94 G17");
 
     switch (unit) {
-    case IN:
-      writeBlock(gUnitModal.format(20));
-      break;
-    case MM:
-      writeBlock(gUnitModal.format(21));
-      break;
+      case IN:
+        writeBlock("G20");
+        break;
+      case MM:
+        writeBlock("G21");
+        break;
     }
-
   }
+
+
 
   if (hasParameter("operation-comment")) {
     var comment = getParameter("operation-comment");
