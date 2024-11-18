@@ -58,6 +58,7 @@ maximumCircularSweep = toRad(180);
 
 allowHelicalMoves = true;
 allowedCircularPlanes = undefined; // allow any circular motion
+highFeedrate = (unit == MM) ? 3000 : 140;
 
 // user-defined properties
 properties = {
