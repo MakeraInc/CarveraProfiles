@@ -58,6 +58,7 @@ maximumCircularSweep = toRad(180);
 
 allowHelicalMoves = true;
 allowedCircularPlanes = undefined; // allow any circular motion
+highFeedrate = (unit == MM) ? 3000 : 140;
 
 // user-defined properties
 properties = {
@@ -133,6 +134,30 @@ properties = {
       {title:"Split by toolpath", id:"toolpath"}
     ],
     value: "none",
+    scope: "post"
+  },
+  splitFileHeader: {
+    title      : "Write Tool# and Header To Each Split By Toolpath File",
+    description: "Write Tool# and Header To Each Split By Toolpath File",
+    group      : "preferences",
+    type       : "boolean",
+    value: true,
+    scope: "post"
+  },
+    manualToolChangeBehavior: {
+    title      : "Manual Tool Change Behavior",
+    description: "If you are using the Carvera Air, choose the Carvera Air option. If you are using the carvera community firmware, that option will allow you to use tools 0-99. If you are using the stock carvera firmware on the non air variant, choose the fusion manual tool changes to generate tool changes when a tool number is greater than 6, the shank size changes, or the tool is marked for manual tool change. If you want the default behavior for the Carvera where it alarms on any tool number greater than 6, choose the first option",
+    group      : "preferences",
+    type       : "enum",
+    values     : [
+      {title:"Error On More Than 6 Tools", id:"error6"},
+      {title:"Fusion Manual Tool Changes", id:"fusionMtc"},
+      {title:"Carvera Community Tool Changes", id:"carvcomMtc"},
+      {title:"Carvera Air Tool Changes", id:"carvAirMtc"}
+    ],
+    value: "carvAirMtc",
+						  
+				  
     scope: "post"
   },
   useShankSizeForManualChange: {
@@ -714,10 +739,24 @@ function getWorkPlaneMachineABC(workPlane) {
   return abc;
 }
 
+// Parse the TLO value from a comment
+function parseTLO(comment) {
+  if (!comment) {
+      return null; // Return null if no comment exists
+  }
+
+  // Match the pattern TLO:X, where X is a letter or a number
+  var match = comment.match(/TLO:([AMam0-9.-]+)/);
+  if (match) {
+      return match[1];
+  }
+  return null;
+}
+
 function onSection() {
   var insertToolCall = isFirstSection() ||
     currentSection.getForceToolChange && currentSection.getForceToolChange() ||
-    (tool.number != getPreviousSection().getTool().number);
+    (tool.number != getPreviousSection().getTool().number) || (getProperty("splitFile") == "toolpath" && getProperty("splitFileHeader"));
 
   var splitHere = getProperty("splitFile") == "toolpath" || (getProperty("splitFile") == "tool" && insertToolCall);
 
@@ -773,13 +812,6 @@ function onSection() {
       subprogram = programName + "_" + (subprograms.length + 1) + "_" + "T" + tool.number;
     }
 
-    // var index = 0;
-    // var _subprogram = subprogram;
-    // while (subprograms.indexOf(_subprogram) !== -1) {
-    //   index++;
-    //   _subprogram = subprogram + "_" + index;
-    // }
-    // subprogram = _subprogram;
     subprograms.push(subprogram);
 
     var path = FileSystem.getCombinedPath(FileSystem.getFolderPath(getOutputPath()), String(subprogram).replace(/[<>:"/\\|?*]/g, "") + "." + extension);
@@ -794,21 +826,20 @@ function onSection() {
     if (programComment) {
       writeComment(programComment);
     }
-
-    // absolute coordinates and feed per min
-    writeBlock(gAbsIncModal.format(90), gFeedModeModal.format(94));
-    writeBlock(gPlaneModal.format(17));
+    // Absolute coordinates and feed per min
+    writeBlock("G90 G94 G17");
 
     switch (unit) {
-    case IN:
-      writeBlock(gUnitModal.format(20));
-      break;
-    case MM:
-      writeBlock(gUnitModal.format(21));
-      break;
+      case IN:
+        writeBlock("G20");
+        break;
+      case MM:
+        writeBlock("G21");
+        break;
     }
-
   }
+
+
 
   if (hasParameter("operation-comment")) {
     var comment = getParameter("operation-comment");
@@ -822,88 +853,56 @@ function onSection() {
 
     if (tool.number > numberOfToolSlots) {
       warning(localize("Tool number exceeds maximum value."));
+    } 
+    
+    var tloValue = parseTLO(tool.comment);//A is automatic and is the default, M is manual setting (C=0), a number set the value directly (H=-14)
+
+    var e_manualToolChangeBehavior = getProperty("manualToolChangeBehavior");
+
+    if(tool.number > 6 && e_manualToolChangeBehavior == "error6") {
+      error(localize("Carvera does not support tool numbers greater than 6 by default. Use one of the manual tool change post processor settings"));
     }
 
-    
-
-
-
-    if (tool.number > 6 || tool.manualToolChange) {
-      writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
-	  if (tool.manualToolChange) {
-		writeComment("as a result of manual tool change selected in tool settings");
-	  }
+    if (e_manualToolChangeBehavior == "carvAirMtc"){ //any tool number accepted
+      writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
 
       if (tool.comment) {
         writeComment(tool.comment);
       }
+    }else if (e_manualToolChangeBehavior == "carvcomMtc"){
 
-      writeComment("Setup for tool change");
-      if (previousToolChangeWasManual ||  isFirstSection()){
-        writeBlock("G28");
-        writeComment("Paused. Prepare to remove tool from collet. Pressing play will release collet");
-        writeBlock(mFormat.format(27));
-        writeBlock(mFormat.format(600));
-        writeBlock("M490.2 (Open Collet)");
-
+      if (tloValue) {
+        if (tloValue === "A") {
+            writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number) + " C1");
+        } else if (tloValue === "M") {
+            writeToolBlock(mFormat.format(6),"T" + toolFormat.format(tool.number) + " C0");
+        } else {
+            var tloFloat = parseFloat(tloValue);
+            if (!isNaN(tloFloat)) {
+                writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number) + " H" + tloFloat);
+            } else {
+                writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
+            }
+        }
       } else {
-        writeBlock("T-1 M6");
-        writeBlock("G28");
+          writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
+      }      
+    }else if (tool.number > 6 || tool.manualToolChange) {
+      writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
+      if (tool.manualToolChange) {
+        writeComment("as a result of manual tool change selected in tool settings");
       }
-
-
-      previousToolChangeWasManual = true;
-
-      writeComment("Paused. Prepare to add new tool to collet. Pressing play will close collet");
-      writeBlock(mFormat.format(27));
-      writeBlock(mFormat.format(600));
-      writeBlock("M490.1 (Close Collet)");
-      writeComment("Paused. Pressing play will calibrate the tool length and continue the program");
-      writeBlock(mFormat.format(27));
-      writeBlock(mFormat.format(600));
-      writeBlock("M493.2T1 (Set tool number to 1 so TLO can be set)");
-      writeBlock("M491 (Calibrate Tool Length)");
-
-    
-
+      performStockManualToolChange(tloValue);
 
     } else if ((!isFirstSection() && getProperty("useShankSizeForManualChange") && Math.abs(tool.shaftDiameter - getPreviousSection().getTool().shaftDiameter)  >  0.001)){
         
         writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
 		    writeComment("as a result of tool shank size change");
-
-        if (tool.comment) {
-          writeComment(tool.comment);
-        }
-
-
-        if (previousToolChangeWasManual ||  isFirstSection()){
-        writeBlock("G28");
-        writeComment("Paused. Prepare to remove tool from collet. Pressing play will release collet");
-        writeBlock(mFormat.format(27));
-        writeBlock(mFormat.format(600));
-        writeBlock("M490.2 (Open Collet)");
-
-      } else {
-        writeBlock("T-1 M6");
-        writeBlock("G28");
-      }
-
-      previousToolChangeWasManual = true;
-      writeComment("Paused. Prepare to add new tool to collet. Pressing play will close collet");
-      writeBlock(mFormat.format(27));
-      writeBlock(mFormat.format(600));
-      writeBlock("M490.1 (Close Collet)");
-      writeComment("Paused. Pressing play will calibrate the tool length and continue the program");
-      writeBlock(mFormat.format(27));
-      writeBlock(mFormat.format(600));
-      writeBlock("M493.2T" + toolFormat.format(tool.number));
-      writeBlock("M491 (Calibrate Tool Length)");
-      
+        performStockManualToolChange(tloValue);
 
     } else {
-        if (previousToolChangeWasManual) {
-		  writeComment("Manual Tool Removal as a result of previous manual tool change");
+        if (previousToolChangeWasManual && e_manualToolChangeBehavior == "fusionMtc") {
+		      writeComment("Manual Tool Removal as a result of previous manual tool change");
           writeComment("setup for tool change");
           writeBlock("G28");
           writeComment("Paused. Prepare to remove tool from collet. Pressing play will release collet");
@@ -916,7 +915,7 @@ function onSection() {
           writeBlock("M493.2 T-1");
           
         }
-        writeToolBlock("T" + toolFormat.format(tool.number), mFormat.format(6));
+        writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
 
         if (tool.comment) {
           writeComment(tool.comment);
@@ -937,7 +936,9 @@ function onSection() {
             }
             writeComment(localize("ZMIN") + "=" + zRange.getMinimum());
           }
+														  
         }
+																   
       }
     
   }
@@ -1017,6 +1018,52 @@ function onSection() {
       xOutput.format(initialPosition.x),
       yOutput.format(initialPosition.y)
     );
+  }
+}
+
+function performStockManualToolChange(tloValue) {
+  
+
+  if (tool.comment) {
+    writeComment(tool.comment);
+  }
+
+  writeComment("Setup for tool change");
+  if (previousToolChangeWasManual || isFirstSection()) {
+    writeBlock("G28");
+    writeComment("Paused. Prepare to remove tool from collet. Pressing play will release collet");
+    writeBlock(mFormat.format(27));
+    writeBlock(mFormat.format(600));
+    writeBlock("M490.2 (Open Collet)");
+
+  } else {
+    writeBlock("T-1 M6");
+    writeBlock("G28");
+  }
+
+
+  previousToolChangeWasManual = true;
+
+  writeComment("Paused. Prepare to add new tool to collet. Pressing play will close collet");
+  writeBlock(mFormat.format(27));
+  writeBlock(mFormat.format(600));
+  writeBlock("M490.1 (Close Collet)");
+
+  var tloFloat = parseFloat(tloValue);
+
+  if (tloValue == "M" || !isNaN(tloFloat)) {
+    writeComment("Paused. Use the manual control interface to set the tool length.");
+    writeComment("Pressing play will goto the clearance position, then continue the program.");
+    writeBlock(mFormat.format(27));
+    writeBlock(mFormat.format(600));
+    writeBlock("G28 (Move To Clearance)");
+
+  } else {
+    writeComment("Paused. Pressing play will calibrate the tool length and continue the program");
+    writeBlock(mFormat.format(27));
+    writeBlock(mFormat.format(600));
+    writeBlock("M493.2T1 (Set tool number to 1 so TLO can be set)");
+    writeBlock("M491 (Calibrate Tool Length)");
   }
 }
 
