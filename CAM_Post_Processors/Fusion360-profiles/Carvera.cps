@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.1.13";
+description = "Makera Carvera Community Post v1.1.17";
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
 legal = "Copyright (C) 2012-2022 by Autodesk, Inc.";
@@ -25,7 +25,21 @@ tolerance = spatial(0.002, MM);
 
 ///////////////////////////////////////////////////////////////////////////////
 //                        MANUAL NC COMMANDS
-//
+// The following manual NC commands are supported by this post:
+//      Dwell                  -pause for x seconds
+//      Stop                   -pause and wait for input from tne user
+//      Comment                -write a comment into the file
+//      Measure Tool           -run a tool length offset calibration on the current tool     
+//      Tool Break Control     -run a tool break test. Requires the community firmware
+//      Pass Through           -send the contents of the input box directly to the machine 
+
+
+// Useful Pass Through Commands
+//      M98.1 "nameOfFile"
+//      M98 P2002
+//      
+
+
 // The following ACTION commands are supported by this post.
 //      
 //     RapidA:#             -rapids the a axis to degree position
@@ -1265,21 +1279,13 @@ function onCommand(command) {
   switch (command) {
   case COMMAND_STOP:
     
-    writeBlock(mFormat.format(0));
+    writeBlock(mFormat.format(600));
     forceSpindleSpeed = true;
     forceCoolant = true;
-    writeComment("Optional Stop End");
     return;
   case COMMAND_OPTIONAL_STOP:
-    writeComment("Optional");
-    writeComment("Stop");
-    writeComment("Start");
-    writeBlock(mFormat.format(5));
-    writeBlock("G28");
-    writeBlock(mFormat.format(27));
-
-    writeBlock(mFormat.format(5));
-    writeBlock(mFormat.format(600));
+    writeComment("Optional Stop Start");
+    writeBlock(mFormat.format(1));
     forceSpindleSpeed = true;
     forceCoolant = true;
     writeComment("Optional Stop End");
@@ -1291,11 +1297,15 @@ function onCommand(command) {
     return;
   case COMMAND_UNLOCK_MULTI_AXIS:
     return;
-  case COMMAND_BREAK_CONTROL:
-    return;
   case COMMAND_TOOL_MEASURE:
+    writeComment("Calibrate TLO");
     writeBlock(mFormat.format(490));
     return;
+  case COMMAND_BREAK_CONTROL:
+    writeComment("Tool Break Test");
+    writeBlock("M491.1");
+    return;
+  
   }
 
   var stringId = getCommandStringId(command);
