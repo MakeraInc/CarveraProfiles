@@ -1,0 +1,27 @@
+; -------------------------------------------------------------------
+; Cutter definition file for the DeskProto software.
+; Created: 2023-08-26 21:25:18
+; -------------------------------------------------------------------
+;
+;Material: Solid Carbide
+;
+;https://www.makera.com/collections/cnc-bits/products/chamfering-bit-1-8-shank
+
+[DeskProto Cutter]
+Version = 7.1
+Name = Makera Chamfer 45 Degree 2mm Length
+Type = 1
+FreeLength = 28.000000
+ShaftDiameter = 3.175000
+SlopeAngle = 12.000000
+FluteLength = 28.000000
+FluteDiameter = 3.175000
+CuttingLength = 2.000000
+TipDiameter = 0.000000
+CuttingAngle = 45.000000
+IsMultipleDiameter = 0
+MaximumSpindlespeed = 15000
+NumberInMachine = 6
+UseAutoSpeeds = 0
+AutoFeedrate = 0.000000
+AutoSpindlespeed = 0

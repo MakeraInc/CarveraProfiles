@@ -1,0 +1,39 @@
+; -------------------------------------------------------------------
+; Cutter definition file for the DeskProto software.
+; Created: 2023-08-26 21:25:18
+; -------------------------------------------------------------------
+;
+;Material: Solid Carbide
+;Applications: PCB trace Isolating, Curve surface milling, Relief milling, Small text engraving, etc.
+;
+;https://www.makera.com/collections/cnc-bits/products/single-flute-engraving-bit-for-metal-1-8-shank?variant=43974732218593
+; Copied: 2025-03-15 from Makera V-bit 30 Degrees 0.2mm Tip 2
+; Copied: 2025-03-15 from Makera Metal V-bit 30 Degrees 0.2mm Tip
+; Copied: 2025-03-15 from Makera V-bit 30 Degrees 0.1mm Tip
+; Copied: 2025-03-15 from Makera V-bit 30 Degrees 0.2mm Tip
+; Copied: 2025-03-15 from Makera V-bit 30 Degrees 0.3mm Tip
+; Copied: 2025-03-15 from Makera V-bit 30 Degrees 0.4mm Tip
+; Copied: 2025-03-15 from Makera V-bit 30 Degrees 0.5mm Tip
+; Copied: 2025-03-15 from Makera Ball Endmill Metal 1*3mm
+; Copied: 2025-03-15 from Makera Ball Endmill 1*4mm
+; Copied: 2025-03-15 from Makera Ball Endmill 1.5*8mm
+; Copied: 2025-03-15 from Makera Ball Endmill 2*12mm
+
+[DeskProto Cutter]
+Version = 7.1
+Name = Makera Ball Endmill 2.5*15mm
+Type = 3
+FreeLength = 28.000000
+ShaftDiameter = 3.175000
+SlopeAngle = 20.000000
+FluteLength = 15.000000
+FluteDiameter = 2.500000
+CuttingLength = 15.000000
+TipDiameter = 0.000000
+CuttingAngle = 45.000000
+IsMultipleDiameter = 1
+MaximumSpindlespeed = 15000
+NumberInMachine = 2
+UseAutoSpeeds = 0
+AutoFeedrate = 0.000000
+AutoSpindlespeed = 0

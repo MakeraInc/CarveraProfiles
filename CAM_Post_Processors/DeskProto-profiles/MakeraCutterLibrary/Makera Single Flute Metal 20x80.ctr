@@ -1,0 +1,31 @@
+; -------------------------------------------------------------------
+; Cutter definition file for the DeskProto software.
+; Created: 2023-08-26 21:25:18
+; -------------------------------------------------------------------
+;
+;Material: Solid Carbide
+;Applications: Sheet/Plate/Block Contour cutting, Face cleaning, Pocket milling, and Hole boring, etc.
+;
+;https://www.makera.com/collections/cnc-bits/products/spiral-o-single-flute-bit-1-8-shank?variant=43974709444833
+; Copied: 2025-03-12 from Makera Single Flute 1.5mm Diameter 8mm Length
+; Copied: 2025-03-12 from Makera Single Flute Metal 1.0mm Diameter 3mm Length
+; Copied: 2025-03-12 from Makera Single Flute Metal 1.5mm Diameter 6mm Length
+
+[DeskProto Cutter]
+Version = 7.1
+Name = Makera Single Flute Metal 2.0mm Diameter 8mm Length
+Type = 0
+FreeLength = 28.000000
+ShaftDiameter = 3.175000
+SlopeAngle = 20.000000
+FluteLength = 8.000000
+FluteDiameter = 2.000000
+CuttingLength = 8.000000
+TipDiameter = 0.000000
+CuttingAngle = 45.000000
+IsMultipleDiameter = 1
+MaximumSpindlespeed = 15000
+NumberInMachine = 4
+UseAutoSpeeds = 0
+AutoFeedrate = 0.000000
+AutoSpindlespeed = 0
