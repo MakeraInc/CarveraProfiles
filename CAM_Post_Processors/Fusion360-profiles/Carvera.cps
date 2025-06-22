@@ -29,19 +29,19 @@ tolerance = spatial(0.002, MM);
 //      Dwell                  -pause for x seconds
 //      Stop                   -pause and wait for input from tne user
 //      Comment                -write a comment into the file
-//      Measure Tool           -run a tool length offset calibration on the current tool     
+//      Measure Tool           -run a tool length offset calibration on the current tool
 //      Tool Break Control     -run a tool break test. Requires the community firmware
-//      Pass Through           -send the contents of the input box directly to the machine 
+//      Pass Through           -send the contents of the input box directly to the machine
 
 
 // Useful Pass Through Commands
 //      M98.1 "nameOfFile"
 //      M98 P2002
-//      
+//
 
 
 // The following ACTION commands are supported by this post.
-//      
+//
 //     RapidA:#             -rapids the a axis to degree position
 //     SaferA:#             -Moves the z axis up to its clearance position then moves the a axis
 //     SafeZ                -Go to a safe z height (same height as the clearance position)
@@ -160,6 +160,14 @@ properties = {
     value: true,
     scope: "post"
   },
+  defaultUseExternalControl: {
+    title      : "Spindle-based External Control",
+    description: "Turn the external PWM control on/off when the spindle is turned on/off.",
+    group      : "preferences",
+    type       : "boolean",
+    value: true,
+    scope: "post"
+  },
     manualToolChangeBehavior: {
     title      : "Manual Tool Change Behavior",
     description: "If you are using the Carvera Air, choose the Carvera Air option. If you are using the carvera community firmware, that option will allow you to use tools 0-99. If you are using the stock carvera firmware on the non air variant, choose the fusion manual tool changes to generate tool changes when a tool number is greater than 6, the shank size changes, or the tool is marked for manual tool change. If you want the default behavior for the Carvera where it alarms on any tool number greater than 6, choose the first option",
@@ -172,8 +180,8 @@ properties = {
       {title:"Carvera Air Tool Changes", id:"carvAirMtc"}
     ],
     value: "carvAirMtc",
-						  
-				  
+
+
     scope: "post"
   },
   useShankSizeForManualChange: {
@@ -224,6 +232,7 @@ var feedFormat = createFormat({decimals:(unit == MM ? 1 : 2)});
 var inverseTimeFormat = createFormat({decimals:3, forceDecimal:true});
 var toolFormat = createFormat({decimals:0});
 var rpmFormat = createFormat({decimals:0});
+var pwmFormat = createFormat({decimals:0, maximum:100, minimum:0});
 var secFormat = createFormat({decimals:3, forceDecimal:true}); // seconds - range 0.001-1000
 var taperFormat = createFormat({decimals:1, scale:DEG});
 
@@ -236,6 +245,7 @@ var cOutput = createVariable({prefix:"C"}, abcFormat);
 var feedOutput = createVariable({prefix:"F"}, feedFormat);
 var inverseTimeOutput = createVariable({prefix:"F", force:true}, inverseTimeFormat);
 var sOutput = createVariable({prefix:"S", force:true}, rpmFormat);
+var pwmOutput = createVariable({prefix:"S", force:true}, pwmFormat);
 
 // circular output
 var iOutput = createVariable({prefix:"I"}, xyzFormat);
@@ -302,7 +312,7 @@ function onPassThrough(text) {
 function onParameter(name, value) {
   var invalid = false;
   if (name == "action") {
-    
+
     if (String(value).toUpperCase() == "SPINDLEOFF"){
       writeBlock("M5 (Spindle Off)")
     } else if (String(value).toUpperCase() == "CLEARANCE"){
@@ -346,7 +356,7 @@ function onParameter(name, value) {
           } else{
             invalid = true;
           }
-        
+
         } else if (sText2[0].toUpperCase() == "SAFERA") {
           if (sText2[1].match(/^-?\d+$/)){
             writeBlock("G53 G0 Z -2. (Goto Safe Height In Z)")
@@ -359,7 +369,7 @@ function onParameter(name, value) {
             writeBlock("M220 S"+sText2[1] + "(Globally sets the feed speed to "+ sText2[1] +" percent. Useful for vetting a program the first time you run it. Remember to run M220 S100 when you are done with the program or restart the machine)")
           } else{
             invalid = true;
-          } 
+          }
         }
 
 
@@ -873,8 +883,8 @@ function onSection() {
 
     if (tool.number > numberOfToolSlots) {
       warning(localize("Tool number exceeds maximum value."));
-    } 
-    
+    }
+
     var tloValue = parseTLO(tool.comment);//A is automatic and is the default, M is manual setting (C=0), a number set the value directly (H=-14)
 
     var e_manualToolChangeBehavior = getProperty("manualToolChangeBehavior");
@@ -906,7 +916,7 @@ function onSection() {
         }
       } else {
           writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
-      }      
+      }
     }else if (tool.number > 6 || tool.manualToolChange) {
       writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
       if (tool.manualToolChange) {
@@ -915,7 +925,7 @@ function onSection() {
       performStockManualToolChange(tloValue);
 
     } else if ((!isFirstSection() && getProperty("useShankSizeForManualChange") && Math.abs(tool.shaftDiameter - getPreviousSection().getTool().shaftDiameter)  >  0.001)){
-        
+
         writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
 		    writeComment("as a result of tool shank size change");
         performStockManualToolChange(tloValue);
@@ -933,7 +943,7 @@ function onSection() {
           writeBlock(mFormat.format(27));
           writeBlock(mFormat.format(600));
           writeBlock("M493.2 T-1");
-          
+
         }
         writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
 
@@ -956,11 +966,11 @@ function onSection() {
             }
             writeComment(localize("ZMIN") + "=" + zRange.getMinimum());
           }
-														  
+
         }
-																   
+
       }
-    
+
   }
 
   var spindleChanged = tool.type != TOOL_PROBE &&
@@ -974,6 +984,9 @@ function onSection() {
     }
     if (spindleSpeed > 99999) {
       warning(localize("Spindle speed exceeds maximum value."));
+    }
+    if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(851), pwmOutput.format(100));
     }
     writeBlock(
       sOutput.format(spindleSpeed), mFormat.format(tool.clockwise ? 3 : 4)
@@ -1042,7 +1055,7 @@ function onSection() {
 }
 
 function performStockManualToolChange(tloValue) {
-  
+
 
   if (tool.comment) {
     writeComment(tool.comment);
@@ -1284,19 +1297,35 @@ var mapCommand = {
 function onCommand(command) {
   switch (command) {
   case COMMAND_STOP:
-    
     writeBlock(mFormat.format(600));
     forceSpindleSpeed = true;
     forceCoolant = true;
+    if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(852));
+    }
+    return;
+  case COMMAND_STOP_SPINDLE:
+    writeBlock(mFormat.format(5));
+    forceSpindleSpeed = true;
+    forceCoolant = true;
+    if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(852));
+    }
     return;
   case COMMAND_OPTIONAL_STOP:
     writeComment("Optional Stop Start");
     writeBlock(mFormat.format(1));
     forceSpindleSpeed = true;
     forceCoolant = true;
+    if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(852));
+    }
     writeComment("Optional Stop End");
     return;
   case COMMAND_START_SPINDLE:
+    if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(851), pwmOutput.format(100));
+    }
     onCommand(tool.clockwise ? COMMAND_SPINDLE_CLOCKWISE : COMMAND_SPINDLE_COUNTERCLOCKWISE);
     return;
   case COMMAND_LOCK_MULTI_AXIS:
@@ -1311,7 +1340,7 @@ function onCommand(command) {
     writeComment("Tool Break Test");
     writeBlock("M491.1");
     return;
-  
+
   }
 
   var stringId = getCommandStringId(command);
@@ -1343,10 +1372,10 @@ function writeRetract() {
     retractAxes[arguments[i]] = true;
   }
 
-  if (retractAxes[0] && retractAxes[1] && retractAxes[2]) { 
+  if (retractAxes[0] && retractAxes[1] && retractAxes[2]) {
     if (getProperty("returnClearance")) {
       writeBlock(gFormat.format(28));
-    }    
+    }
   } else if (retractAxes[0]) {
     gMotionModal.reset();
     writeBlock(gAbsIncModal.format(90), gFormat.format(53), gMotionModal.format(0), "Z" + xyzFormat.format(toPreciseUnit(-3, MM)));
