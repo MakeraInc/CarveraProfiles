@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.1.18";
+description = "Makera Carvera Community Post v1.1.19";
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
 legal = "Copyright (C) 2012-2022 by Autodesk, Inc.";
@@ -74,7 +74,7 @@ maximumCircularSweep = toRad(180);
 
 allowHelicalMoves = true;
 allowedCircularPlanes = undefined; // allow any circular motion
-highFeedrate = (unit == MM) ? 3000 : 140;
+highFeedrate = (unit == MM ? 3000 : 140);
 
 // user-defined properties
 properties = {
@@ -226,15 +226,17 @@ var coolants = [
 var gFormat = createFormat({prefix:"G", decimals:0});
 var mFormat = createFormat({prefix:"M", decimals:0});
 
-var xyzFormat = createFormat({decimals:(unit == MM ? 3 : 4)});
+var xyzFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
+var rFormat = xyzFormat; //radius
 var abcFormat = createFormat({decimals:3, forceDecimal:true, scale:DEG});
-var feedFormat = createFormat({decimals:(unit == MM ? 1 : 2)});
+var feedFormat = createFormat({decimals:(unit == MM ? 1 : 2), type:FORMAT_REAL});
 var inverseTimeFormat = createFormat({decimals:3, forceDecimal:true});
 var toolFormat = createFormat({decimals:0});
 var rpmFormat = createFormat({decimals:0});
 var pwmFormat = createFormat({decimals:0, maximum:100, minimum:0});
 var secFormat = createFormat({decimals:3, forceDecimal:true}); // seconds - range 0.001-1000
 var taperFormat = createFormat({decimals:1, scale:DEG});
+var integerFormat = createFormat({decimals:0});
 
 var xOutput = createVariable({prefix:"X"}, xyzFormat);
 var yOutput = createVariable({prefix:"Y"}, xyzFormat);
@@ -244,8 +246,8 @@ var bOutput = createVariable({prefix:"B"}, abcFormat);
 var cOutput = createVariable({prefix:"C"}, abcFormat);
 var feedOutput = createVariable({prefix:"F"}, feedFormat);
 var inverseTimeOutput = createVariable({prefix:"F", force:true}, inverseTimeFormat);
-var sOutput = createVariable({prefix:"S", force:true}, rpmFormat);
 var pwmOutput = createVariable({prefix:"S", force:true}, pwmFormat);
+var sOutput = createVariable({prefix:"S"}, rpmFormat);
 
 // circular output
 var iOutput = createVariable({prefix:"I"}, xyzFormat);
@@ -1159,47 +1161,70 @@ function onLinear(_x, _y, _z, feed) {
   }
 }
 
-function onRapid5D(_x, _y, _z, _a, _b, _c) {
-  if (!currentSection.isOptimizedForMachine()) {
-    error(localize("This post configuration has not been customized for 5-axis simultaneous toolpath."));
-    return;
+function getFeed(f) {
+  if (getProperty("useG95")) {
+    return feedOutput.format(f / spindleSpeed); // use feed value
   }
+  if (typeof activeMovements != "undefined" && activeMovements) {
+    var feedContext = activeMovements[movement];
+    if (feedContext != undefined) {
+      if (!feedFormat.areDifferent(feedContext.feed, f)) {
+        if (feedContext.id == currentFeedId) {
+          return ""; // nothing has changed
+        }
+        forceFeed();
+        currentFeedId = feedContext.id;
+        return settings.parametricFeeds.feedOutputVariable + (settings.parametricFeeds.firstFeedParameter + feedContext.id);
+      }
+    }
+    currentFeedId = undefined; // force parametric feed next time
+  }
+  return feedOutput.format(f); // use feed value
+}
+
+// <<<<< INCLUDED FROM include_files/onLinear_fanuc.cpi
+// >>>>> INCLUDED FROM include_files/onRapid5D_fanuc.cpi
+function onRapid5D(_x, _y, _z, _a, _b, _c) {
   if (pendingRadiusCompensation >= 0) {
     error(localize("Radius compensation mode cannot be changed at rapid traversal."));
     return;
   }
+  if (!currentSection.isOptimizedForMachine()) {
+    forceXYZ();
+  }
   var x = xOutput.format(_x);
   var y = yOutput.format(_y);
   var z = zOutput.format(_z);
-  var a = aOutput.format(_a);
-  var b = bOutput.format(_b);
-  var c = cOutput.format(_c);
+  var a = currentSection.isOptimizedForMachine() ? aOutput.format(_a) : toolVectorOutputI.format(_a);
+  var b = currentSection.isOptimizedForMachine() ? bOutput.format(_b) : toolVectorOutputJ.format(_b);
+  var c = currentSection.isOptimizedForMachine() ? cOutput.format(_c) : toolVectorOutputK.format(_c);
+
   if (x || y || z || a || b || c) {
     writeBlock(gMotionModal.format(0), x, y, z, a, b, c);
     feedOutput.reset();
   }
 }
-
+// <<<<< INCLUDED FROM include_files/onRapid5D_fanuc.cpi
+// >>>>> INCLUDED FROM include_files/onLinear5D_fanuc.cpi
 function onLinear5D(_x, _y, _z, _a, _b, _c, feed, feedMode) {
-  if (!currentSection.isOptimizedForMachine()) {
-    error(localize("This post configuration has not been customized for 5-axis simultaneous toolpath."));
-    return;
-  }
   if (pendingRadiusCompensation >= 0) {
     error(localize("Radius compensation cannot be activated/deactivated for 5-axis move."));
     return;
   }
+  if (!currentSection.isOptimizedForMachine()) {
+    forceXYZ();
+  }
   var x = xOutput.format(_x);
   var y = yOutput.format(_y);
   var z = zOutput.format(_z);
-  var a = aOutput.format(_a);
-  var b = bOutput.format(_b);
-  var c = cOutput.format(_c);
+  var a = currentSection.isOptimizedForMachine() ? aOutput.format(_a) : toolVectorOutputI.format(_a);
+  var b = currentSection.isOptimizedForMachine() ? bOutput.format(_b) : toolVectorOutputJ.format(_b);
+  var c = currentSection.isOptimizedForMachine() ? cOutput.format(_c) : toolVectorOutputK.format(_c);
   if (feedMode == FEED_INVERSE_TIME) {
     feedOutput.reset();
   }
-  var f = feedMode == FEED_INVERSE_TIME ? inverseTimeOutput.format(feed) : feedOutput.format(feed);
-  var fMode = feedMode == FEED_INVERSE_TIME ? 93 : 94;
+  var f = feedMode == FEED_INVERSE_TIME ? inverseTimeOutput.format(feed) : getFeed(feed);
+  var fMode = feedMode == FEED_INVERSE_TIME ? 93 : getProperty("useG95") ? 95 : 94;
 
   if (x || y || z || a || b || c) {
     writeBlock(gFeedModeModal.format(fMode), gMotionModal.format(1), x, y, z, a, b, c, f);
@@ -1235,9 +1260,9 @@ function forceCircular(plane) {
   }
 }
 
+// <<<<< INCLUDED FROM include_files/onLinear5D_fanuc.cpi
+// >>>>> INCLUDED FROM include_files/onCircular_fanuc.cpi
 function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
-  // one of X/Y and I/J are required and likewise
-
   if (pendingRadiusCompensation >= 0) {
     error(localize("Radius compensation cannot be activated/deactivated for a circular move."));
     return;
@@ -1246,44 +1271,87 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
   var start = getCurrentPosition();
 
   if (isFullCircle()) {
-    if (isHelical()) {
+    if (getProperty("useRadius") || isHelical()) { // radius mode does not support full arcs
       linearize(tolerance);
       return;
     }
     switch (getCircularPlane()) {
     case PLANE_XY:
-      forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
       break;
     case PLANE_ZX:
-      forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
       break;
     case PLANE_YZ:
-      forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), yOutput.format(y), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
       break;
     default:
       linearize(tolerance);
     }
-  } else {
+  } else if (!getProperty("useRadius")) {
     switch (getCircularPlane()) {
     case PLANE_XY:
-      forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
       break;
     case PLANE_ZX:
-      forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
       break;
     case PLANE_YZ:
-      forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
       break;
     default:
-      linearize(tolerance);
+      if (getProperty("allow3DArcs")) {
+        // make sure maximumCircularSweep is well below 360deg
+        // we could use G02.4 or G03.4 - direction is calculated
+        var ip = getPositionU(0.5);
+        writeBlock(gMotionModal.format(clockwise ? 2.4 : 3.4), xOutput.format(ip.x), yOutput.format(ip.y), zOutput.format(ip.z), getFeed(feed));
+        writeBlock(xOutput.format(x), yOutput.format(y), zOutput.format(z));
+      } else {
+        linearize(tolerance);
+      }
+    }
+  } else { // use radius mode
+    var r = getCircularRadius();
+    if (toDeg(getCircularSweep()) > (180 + 1e-9)) {
+      r = -r; // allow up to <360 deg arcs
+    }
+    switch (getCircularPlane()) {
+    case PLANE_XY:
+      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
+      break;
+    case PLANE_ZX:
+      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
+      break;
+    case PLANE_YZ:
+      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
+      break;
+    default:
+      if (getProperty("allow3DArcs")) {
+        // make sure maximumCircularSweep is well below 360deg
+        // we could use G02.4 or G03.4 - direction is calculated
+        var ip = getPositionU(0.5);
+        writeBlock(gMotionModal.format(clockwise ? 2.4 : 3.4), xOutput.format(ip.x), yOutput.format(ip.y), zOutput.format(ip.z), getFeed(feed));
+        writeBlock(xOutput.format(x), yOutput.format(y), zOutput.format(z));
+      } else {
+        linearize(tolerance);
+      }
     }
   }
+}
+// <<<<< INCLUDED FROM include_files/onCircular_fanuc.cpi
+// >>>>> INCLUDED FROM include_files/workPlaneFunctions_fanuc.cpi
+var gRotationModal = createOutputVariable({current : 69,
+  onchange: function () {
+    state.twpIsActive = gRotationModal.getCurrent() != 69;
+    if (typeof probeVariables != "undefined") {
+      probeVariables.outputRotationCodes = probeVariables.probeAngleMethod == "G68";
+    }
+    machineSimulation({}); // update machine simulation TWP state
+  }}, gFormat);
+
+var currentWorkPlaneABC = undefined;
+function forceWorkPlane() {
+  currentWorkPlaneABC = undefined;
 }
 
 var mapCommand = {
