@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.1.20";
+description = "Makera Carvera Community Post v1.1.21";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -1272,9 +1272,9 @@ function forceCircular(plane) {
   }
 }
 
-// <<<<< INCLUDED FROM include_files/onLinear5D_fanuc.cpi
-// >>>>> INCLUDED FROM include_files/onCircular_fanuc.cpi
 function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
+  // one of X/Y and I/J are required and likewise
+
   if (pendingRadiusCompensation >= 0) {
     error(localize("Radius compensation cannot be activated/deactivated for a circular move."));
     return;
@@ -1283,73 +1283,46 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
   var start = getCurrentPosition();
 
   if (isFullCircle()) {
-    if (getProperty("useRadius") || isHelical()) { // radius mode does not support full arcs
+    if (isHelical()) {
       linearize(tolerance);
       return;
     }
     switch (getCircularPlane()) {
     case PLANE_XY:
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
+      forceCircular(getCircularPlane());
+      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed));
       break;
     case PLANE_ZX:
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
+      forceCircular(getCircularPlane());
+      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed));
       break;
     case PLANE_YZ:
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
+      forceCircular(getCircularPlane());
+      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), yOutput.format(y), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed));
       break;
     default:
       linearize(tolerance);
     }
-  } else if (!getProperty("useRadius")) {
+  } else {
     switch (getCircularPlane()) {
     case PLANE_XY:
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), getFeed(feed));
+      forceCircular(getCircularPlane());
+      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed));
       break;
     case PLANE_ZX:
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), getFeed(feed));
+      forceCircular(getCircularPlane());
+      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed));
       break;
     case PLANE_YZ:
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), getFeed(feed));
+      forceCircular(getCircularPlane());
+      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed));
       break;
     default:
-      if (getProperty("allow3DArcs")) {
-        // make sure maximumCircularSweep is well below 360deg
-        // we could use G02.4 or G03.4 - direction is calculated
-        var ip = getPositionU(0.5);
-        writeBlock(gMotionModal.format(clockwise ? 2.4 : 3.4), xOutput.format(ip.x), yOutput.format(ip.y), zOutput.format(ip.z), getFeed(feed));
-        writeBlock(xOutput.format(x), yOutput.format(y), zOutput.format(z));
-      } else {
-        linearize(tolerance);
-      }
-    }
-  } else { // use radius mode
-    var r = getCircularRadius();
-    if (toDeg(getCircularSweep()) > (180 + 1e-9)) {
-      r = -r; // allow up to <360 deg arcs
-    }
-    switch (getCircularPlane()) {
-    case PLANE_XY:
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
-      break;
-    case PLANE_ZX:
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
-      break;
-    case PLANE_YZ:
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), "R" + rFormat.format(r), getFeed(feed));
-      break;
-    default:
-      if (getProperty("allow3DArcs")) {
-        // make sure maximumCircularSweep is well below 360deg
-        // we could use G02.4 or G03.4 - direction is calculated
-        var ip = getPositionU(0.5);
-        writeBlock(gMotionModal.format(clockwise ? 2.4 : 3.4), xOutput.format(ip.x), yOutput.format(ip.y), zOutput.format(ip.z), getFeed(feed));
-        writeBlock(xOutput.format(x), yOutput.format(y), zOutput.format(z));
-      } else {
-        linearize(tolerance);
-      }
+      linearize(tolerance);
     }
   }
 }
+
 // <<<<< INCLUDED FROM include_files/onCircular_fanuc.cpi
 // >>>>> INCLUDED FROM include_files/workPlaneFunctions_fanuc.cpi
 var gRotationModal = createOutputVariable({current : 69,
