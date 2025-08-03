@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.1.21";
+description = "Makera Carvera Community Post v1.2.0";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -167,6 +167,14 @@ properties = {
     group      : "preferences",
     type       : "boolean",
     value: true,
+    scope: "post"
+  },
+  useExtForAirCoolant: {
+    title      : "Use Ext For Air Coolant",
+    description: "Turn the external PWM control on/off when the air coolant is turned on/off.",
+    group      : "preferences",
+    type       : "boolean",
+    value: false,
     scope: "post"
   },
     manualToolChangeBehavior: {
@@ -1495,9 +1503,18 @@ function getCoolantCodes(coolant) {
     }
   }
   if (coolant == COOLANT_OFF) {
-    m = !coolantOff ? coolantCodes.off : coolantOff; // use the default coolant off command when an 'off' value is not specified
+    m = !coolantOff ? coolantCodes.off : coolantOff;
+    if (currentCoolantMode == COOLANT_AIR && getProperty("useExtForAirCoolant")) {
+      currentCoolantMode = coolant;
+      return [mFormat.format(852)];
+    }
   } else {
     coolantOff = coolantCodes.off;
+    if (coolant == COOLANT_AIR && getProperty("useExtForAirCoolant")) {
+      currentCoolantMode = coolant;
+      return ["M851S100"];
+    }
+
     m = coolantCodes.on;
   }
 
