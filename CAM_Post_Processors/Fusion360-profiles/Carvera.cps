@@ -1358,6 +1358,7 @@ var mapCommand = {
 function onCommand(command) {
   switch (command) {
   case COMMAND_STOP:
+    writeComment("Stop");
     writeBlock(mFormat.format(600));
     forceSpindleSpeed = true;
     forceCoolant = true;
