@@ -1,0 +1,10 @@
+{
+  "label": "Makera_UV_Soldermask",
+  "tools": [
+    {
+      "nr": 1,
+      "path": "Makera_UV Solder Mask Removal Tool_PCB.fctb"
+    }
+  ],
+  "version": 1
+}

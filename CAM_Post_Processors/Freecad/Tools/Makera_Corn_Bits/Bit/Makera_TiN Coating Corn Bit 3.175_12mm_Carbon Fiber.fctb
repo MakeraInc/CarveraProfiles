@@ -1,0 +1,27 @@
+{
+  "attribute": {
+    "Description": "TiN Coating Corn Bit 3.175*12mm",
+    "ToolType": "flat end mill",
+    "Vendor": "Makera",
+    "cutting_feedrate": "500",
+    "lead_in_feedrate": "500",
+    "plunge_feedrate": "300",
+    "rampAngle": "2",
+    "ramp_feedrate": "333.333",
+    "spindleSpeed": "12000",
+    "stepdown": "0.3"
+  },
+  "name": "Makera_TiN Coating Corn Bit 3.175*12mm_Carbon Fiber",
+  "parameter": {
+    "Chipload": "0,0208333 mm",
+    "CuttingEdgeHeight": "12,0 mm",
+    "Diameter": "3,175 mm",
+    "Flutes": "2",
+    "Length": "32,0 mm",
+    "Material": "Carbide",
+    "NeckLength": "21,0 mm",
+    "ShankDiameter": "3,175 mm"
+  },
+  "shape": "_fusion_flat_end_mill.fcstd",
+  "version": 1
+}

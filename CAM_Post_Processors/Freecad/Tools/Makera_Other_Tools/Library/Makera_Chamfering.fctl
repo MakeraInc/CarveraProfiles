@@ -1,0 +1,38 @@
+{
+  "label": "Makera_Chamfer",
+  "tools": [
+    {
+      "nr": 1,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_Aluminum.fctb"
+    },
+    {
+      "nr": 2,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_Brass.fctb"
+    },
+    {
+      "nr": 3,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_Carbon Fiber.fctb"
+    },
+    {
+      "nr": 4,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_Copper.fctb"
+    },
+    {
+      "nr": 5,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_Hardwood.fctb"
+    },
+    {
+      "nr": 6,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_PCB.fctb"
+    },
+    {
+      "nr": 7,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_Plastic.fctb"
+    },
+    {
+      "nr": 8,
+      "path": "Makera_Chamfering Bit - 1_8\u2033 Shank_Softwood.fctb"
+    }
+  ],
+  "version": 1
+}

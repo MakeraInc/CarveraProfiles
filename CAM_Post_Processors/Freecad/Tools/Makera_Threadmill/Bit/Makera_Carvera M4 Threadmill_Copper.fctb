@@ -1,0 +1,30 @@
+{
+  "attribute": {
+    "Description": "Carvera M4 Threadmill",
+    "ToolType": "thread mill",
+    "Vendor": "Makera",
+    "cutting_feedrate": "200",
+    "lead_in_feedrate": "200",
+    "plunge_feedrate": "200",
+    "rampAngle": "2",
+    "ramp_feedrate": "333.333",
+    "spindleSpeed": "15000",
+    "stepdown": "0.7",
+    "stepover": "0.63"
+  },
+  "name": "Makera_Carvera M4 Threadmill_Copper",
+  "parameter": {
+    "Chipload": "0,00444444 mm",
+    "Crest": "0,1 mm",
+    "Diameter": "3,15 mm",
+    "Flutes": "3",
+    "Length": "38,0 mm",
+    "Material": "Carbide",
+    "NeckDiameter": "3,0 mm",
+    "NeckLength": "20,0 mm",
+    "ShankDiameter": "3,175 mm",
+    "cuttingAngle": "60,0 \u00b0"
+  },
+  "shape": "threadmill.fcstd",
+  "version": 1
+}
