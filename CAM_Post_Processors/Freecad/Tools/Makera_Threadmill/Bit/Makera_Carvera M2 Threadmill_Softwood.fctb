@@ -1,0 +1,30 @@
+{
+  "attribute": {
+    "Description": "Carvera M2 Threadmill",
+    "ToolType": "thread mill",
+    "Vendor": "Makera",
+    "cutting_feedrate": "300",
+    "lead_in_feedrate": "300",
+    "plunge_feedrate": "300",
+    "rampAngle": "2",
+    "ramp_feedrate": "333.333",
+    "spindleSpeed": "12000",
+    "stepdown": "0.4",
+    "stepover": "0.462"
+  },
+  "name": "Makera_Carvera M2 Threadmill_Softwood",
+  "parameter": {
+    "Chipload": "0,00833333 mm",
+    "Crest": "0,1 mm",
+    "Diameter": "1,54 mm",
+    "Flutes": "3",
+    "Length": "38,0 mm",
+    "Material": "Carbide",
+    "NeckDiameter": "3,0 mm",
+    "NeckLength": "20,0 mm",
+    "ShankDiameter": "3,175 mm",
+    "cuttingAngle": "60,0 \u00b0"
+  },
+  "shape": "threadmill.fcstd",
+  "version": 1
+}

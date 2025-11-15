@@ -1,0 +1,30 @@
+{
+  "attribute": {
+    "Description": "Single Flute Engraving Metal 30 deg*.5mm",
+    "ToolType": "chamfer mill",
+    "Vendor": "Makera",
+    "cutting_feedrate": "996.853",
+    "lead_in_feedrate": "1000",
+    "plunge_feedrate": "500",
+    "rampAngle": "1.2",
+    "ramp_feedrate": "333.333",
+    "spindleSpeed": "11962.2",
+    "stepdown": "2",
+    "stepover": "0.15"
+  },
+  "name": "Makera_Single Flute Engraving Metal 30 deg*.5mm_Softwood",
+  "parameter": {
+    "Chipload": "0,0833333 mm",
+    "CuttingEdgeHeight": "9,0 mm",
+    "Diameter": "3,175 mm",
+    "Flutes": "1",
+    "Length": "38,0 mm",
+    "Material": "Carbide",
+    "NeckLength": "27,0 mm",
+    "ShankDiameter": "3,175 mm",
+    "TipAngle": "15,0 \u00b0",
+    "TipDiameter": "0,5 mm"
+  },
+  "shape": "_fusion_chamfer_mill.fcstd",
+  "version": 1
+}
