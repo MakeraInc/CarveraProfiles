@@ -1,0 +1,18 @@
+[DeskProto Cutter]
+Version = 7.0
+Name = Endmill-3.175dia-25mm
+Type = 0
+FreeLength = 50.000000
+ShaftDiameter = 3.175000
+SlopeAngle = 45.000000
+FluteLength = 50.000000
+FluteDiameter = 3.175000
+CuttingLength = 17.000000
+TipDiameter = 0.000000
+CuttingAngle = 45.000000
+IsMultipleDiameter = 0
+MaximumSpindlespeed = 15000
+NumberInMachine = 1
+UseAutoSpeeds = 0
+AutoFeedrate = 0.000000
+AutoSpindlespeed = 0

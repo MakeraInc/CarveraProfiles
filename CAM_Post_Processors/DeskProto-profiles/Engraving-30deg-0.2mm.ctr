@@ -1,0 +1,18 @@
+[DeskProto Cutter]
+Version = 7.0
+Name = Engraving-30degree-0.2mm
+Type = 2
+FreeLength = 38.000000
+ShaftDiameter = 3.175000
+SlopeAngle = 45.000000
+FluteLength = 38.000000
+FluteDiameter = 3.175000
+CuttingLength = 15.000000
+TipDiameter = 0.200000
+CuttingAngle = 15.000000
+IsMultipleDiameter = 0
+MaximumSpindlespeed = 15000
+NumberInMachine = 2
+UseAutoSpeeds = 0
+AutoFeedrate = 0.000000
+AutoSpindlespeed = 0

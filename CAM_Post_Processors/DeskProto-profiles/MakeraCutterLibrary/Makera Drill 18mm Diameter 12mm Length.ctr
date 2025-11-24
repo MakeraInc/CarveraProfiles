@@ -1,0 +1,40 @@
+; -------------------------------------------------------------------
+; Cutter definition file for the DeskProto software.
+; Created: 2023-08-26 21:25:18
+; Copied: 2025-03-12 from Makera Drill 0.3mm Diameter 8mm Length
+; Copied: 2025-03-12 from Makera Drill 0.2mm Diameter 3.5mm Length
+; Copied: 2025-03-12 from Makera Drill 0.3mm Diameter 5.5mm Length
+; Copied: 2025-03-12 from Makera Drill 0.4mm Diameter 7.0mm Length [#2]
+; Copied: 2025-03-12 from Makera Drill 0.5mm Diameter 8.5mm Length
+; Copied: 2025-03-12 from Makera Drill 0.6mm Diameter 9.5mm Length
+; Copied: 2025-03-12 from Makera Drill 0.7mm Diameter 10mm Length
+; Copied: 2025-03-12 from Makera Drill 0.8mm Diameter 10mm Length
+; Copied: 2025-03-12 from Makera Drill 0.9mm Diameter 10mm Length
+; Copied: 2025-03-12 from Makera Drill 1.0mm Diameter 10mm Length
+; Copied: 2025-03-12 from Makera Drill 1.1mm Diameter 10mm Length
+; Copied: 2025-03-12 from Makera Drill 1.2mm Diameter 10mm Length
+; Copied: 2025-03-12 from Makera Drill 1.3mm Diameter 12mm Length
+; Copied: 2025-03-12 from Makera Drill 1.4mm Diameter 12mm Length
+; Copied: 2025-03-12 from Makera Drill 1.5mm Diameter 12mm Length
+; Copied: 2025-03-12 from Makera Drill 1.6mm Diameter 12mm Length
+; Copied: 2025-03-12 from Makera Drill 1.7mm Diameter 12mm Length
+; -------------------------------------------------------------------
+
+[DeskProto Cutter]
+Version = 7.1
+Name = Makera Drill 1.8mm Diameter 12mm Length
+Type = 0
+FreeLength = 28.000000
+ShaftDiameter = 3.175000
+SlopeAngle = 20.000000
+FluteLength = 12.000000
+FluteDiameter = 1.800000
+CuttingLength = 12.000000
+TipDiameter = 0.000000
+CuttingAngle = 45.000000
+IsMultipleDiameter = 1
+MaximumSpindlespeed = 15000
+NumberInMachine = 3
+UseAutoSpeeds = 0
+AutoFeedrate = 0.000000
+AutoSpindlespeed = 0

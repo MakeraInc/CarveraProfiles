@@ -1,0 +1,24 @@
+; -------------------------------------------------------------------
+; Cutter definition file for the DeskProto software.
+; Created: 2023-08-26 21:25:18
+; Copied: 2025-03-12 from Makera Corn 2.0mm Diameter 10.5mm Length
+; -------------------------------------------------------------------
+
+[DeskProto Cutter]
+Version = 7.1
+Name = Makera Corn 2.1mm Diameter 10.5mm Length
+Type = 0
+FreeLength = 28.000000
+ShaftDiameter = 3.175000
+SlopeAngle = 15.000000
+FluteLength = 10.500000
+FluteDiameter = 2.100000
+CuttingLength = 10.500000
+TipDiameter = 0.000000
+CuttingAngle = 45.000000
+IsMultipleDiameter = 1
+MaximumSpindlespeed = 15000
+NumberInMachine = 3
+UseAutoSpeeds = 0
+AutoFeedrate = 0.000000
+AutoSpindlespeed = 0

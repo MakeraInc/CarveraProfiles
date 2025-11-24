@@ -1,0 +1,26 @@
+[DeskProto Machine]
+Version = 7.0
+Name = CARVERA
+PostProcessor = CARVERA
+WorkingAreaXSize = 340.000000
+WorkingAreaYSize = 240.000000
+WorkingAreaZSize = 120.000000
+ColletDiameter = 6.000000
+MinimumFeedrate = 1.000000
+DefaultFeedrate = 1000.000000
+MaximumFeedrate = 2000.000000
+MillingTimeCorrectionFactor = 1.000000
+MinimumSpindlespeed = 1000
+DefaultSpindlespeed = 12000
+MaximumSpindlespeed = 15000
+NumberOfTools = 6
+HasRotationAxis = 1
+AxisCentreLevel = 44.000000
+RotationAxisExceeds360 = 1
+NeedsWriteYZeroAtStart = 1
+HasAutomatic5thAxis = 0
+Has5thAxis = 0
+Dist5thTo4thAxis = 0.000000
+RotationAxisSwapYX = 0
+RotationAxisSwapBA = 0
+OptimizeCurvesAtConstantZ = 0

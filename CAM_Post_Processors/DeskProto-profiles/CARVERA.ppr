@@ -1,0 +1,133 @@
+[DeskProto PostProcessor]
+Version = 7.0
+
+[General]
+Name = CARVERA
+UseMaximumOutputFilesize = 0
+MaximumOutputFilesize = 1
+OutputFileExtension = NC
+DecimalCharacter = .
+NewLineValues = 13,10,0,0
+
+[General Line Numbering]
+ToBeUsed = 0
+Increment = 1
+LeadingZeroes = 0
+StartValue = 0
+LineToStartAt = 1
+LineToEndAt = 0
+StartCommand = ~~
+EndCommand = ~~
+
+[StartEnd]
+StartCommand0 = ~%~
+StartCommand1 = ~G17 G21 G54 G90~
+EndCommand0 = ~M9~
+EndCommand1 = ~M5~
+EndCommand2 = ~M30~
+
+[Movement]
+StartCommand = ~G01~
+EndCommand = ~~
+UseCommandOnlyForFirstMovement = 0
+
+[Movement Coordinates]
+XValueStartCommand = ~X~
+YValueStartCommand = ~Y~
+ZValueStartCommand = ~Z~
+AValueStartCommand = ~A~
+BValueStartCommand = ~B~
+XValueEndCommand = ~~
+YValueEndCommand = ~~
+ZValueEndCommand = ~~
+AValueEndCommand = ~~
+BValueEndCommand = ~~
+NumberOfXPositions = 1
+NumberOfYPositions = 1
+NumberOfZPositions = 1
+NumberOfAPositions = 1
+NumberOfBPositions = 1
+NumberOfXDecimals = 2
+NumberOfYDecimals = 2
+NumberOfZDecimals = 2
+NumberOfADecimals = 2
+NumberOfBDecimals = 3
+XFactor = 1.000000
+YFactor = 1.000000
+ZFactor = 1.000000
+AFactor = 1.000000
+BFactor = 1.000000
+XValueDefault = ~~
+YValueDefault = ~~
+ZValueDefault = ~~
+AValueDefault = ~~
+BValueDefault = ~~
+writeOnlyIfChanged = 0
+SignAlways = 0
+SkipTrailingZeros = 0
+Order = XYZAB
+Unit = 0
+AngleUnit = 0
+
+[Rapid Movement]
+Method = 0
+UseCommandOnlyForFirst = 0
+StartCommand = ~G00~
+
+[Feedrate]
+ToBeUsed = 1
+writeOnlyIfChanged = 1
+StartCommand = ~ F~
+EndCommand = ~~
+NumberOfPositions = 1
+NumberOfDecimals = 0
+Factor = 1.000000
+Placement = 2
+DistanceUnit = 0
+TimeUnit = 1
+RotaryMethod = 0
+
+[Inverse Time Feedrate]
+OnCommand = ~G93~
+OffCommand = ~G94~
+StartCommand = ~ F~
+EndCommand = ~~
+NumberOfPositions = 1
+NumberOfDecimals = 1
+Factor = 1.000000
+Placement = 2
+MovTimeUnit = 1
+
+[Angular Feedrate]
+StartCommand = ~ F~
+EndCommand = ~~
+NumberOfPositions = 1
+NumberOfDecimals = 0
+Factor = 1.000000
+Placement = 2
+AngleUnit = 0
+MovTimeUnit = 1
+
+[Spindlespeed]
+ToBeUsed = 1
+StartCommand = ~M3 S~
+EndCommand = ~~
+NumberOfPositions = 1
+NumberOfDecimals = 0
+Factor = 1.000000
+Placement = 0
+
+[Tool Change]
+Method = 0
+StartCommand = ~M5~
+UseFirstToolChangeNumber = 0
+EndCommand = ~~
+UseExtraCommandline = 1
+ExtraStartCommand = ~T~
+UseSecondToolChangeNumber = 1
+ExtraEndCommand = ~M6~
+UseThirdCommandline = 0
+ThirdStartCommand = ~~
+UseThirdToolChangeNumber = 0
+ThirdEndCommand = ~~
+PauseCommand = ~~
