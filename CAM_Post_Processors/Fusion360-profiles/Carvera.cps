@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.2.0";
+description = "Makera Carvera Community Post v1.3.0";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -204,7 +204,7 @@ properties = {
     description: "Automatically rotates the 4th axis between consecutive setups. This means that the X-axis of the part has to be the rotation axis for the A axis. It will calculates the difference between consecutive model planes and automatically rotate the A axis accordingly between each setup. Setup 1 will be treated as the A-axis rotation of 0.",
     group      : "preferences",
     type       : "boolean",
-    value      : true,
+    value      : false,
     scope      : "post"
   },
   yAxisSafePosition: {
@@ -282,6 +282,8 @@ var gPlaneModal = createOutputVariable({onchange:function () {gMotionModal.reset
 var gAbsIncModal = createOutputVariable({}, gFormat); // modal group 3 // G90-91
 var gFeedModeModal = createOutputVariable({}, gFormat); // modal group 5 // G93-94
 var gUnitModal = createOutputVariable({}, gFormat); // modal group 6 // G20-21
+
+var fourthAxisRotationPreviousLocation = undefined;
 
 var WARNING_WORK_OFFSET = 0;
 
@@ -710,7 +712,24 @@ function defineWorkPlane(_section, _setWorkPlane) {
     }
   } else { // pure 3D
     // Inject a 4th axis rotation if the WCS and model plane are not aligned
-    if(getProperty("rotate4thAxisRelativeToModelPlane")) {
+    if (getProperty("rotate4thAxisRelativeToModelPlane")) {
+      var currOrigin = currentSection.modelOrigin;
+
+      if (!currOrigin) {
+        error(localize("Unable to resolve WCS origin in world space."));
+      }
+
+      if (fourthAxisRotationPreviousLocation === undefined) {
+        fourthAxisRotationPreviousLocation = new Vector(currOrigin.x, currOrigin.y, currOrigin.z);
+      } else {
+        var dx = fourthAxisRotationPreviousLocation.x - currOrigin.x;
+        var dy = fourthAxisRotationPreviousLocation.y - currOrigin.y;
+        var dz = fourthAxisRotationPreviousLocation.z - currOrigin.z;
+        if ((dx * dx + dy * dy + dz * dz) > 1e-12) {
+          error(localize("Origin must be in the same location when automatic 4th axis rotation is used"));
+        }
+      }
+
       currentAAngle = calculateAAxisRotation();
       writeComment("Retracting to safe position for possible A axis rotation");
       writeRetract(Z, Y);
