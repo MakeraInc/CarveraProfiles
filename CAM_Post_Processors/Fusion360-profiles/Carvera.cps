@@ -760,19 +760,23 @@ function calculateAAxisRotation() {
   return normalizeDegrees(relativeAngle);
 }
 
+var rotationStartForward = null;
 function signedXPlaneRotationDeg(plane) {
 
-  var globalForward = new Vector(0, 0, 1);
+  if (rotationStartForward == null) { // First setup, set the initial plane and don't rotate
+    rotationStartForward = plane.forward;
+    return 0;
+  }
   var planeForward = plane.forward;
 
-  var dot = Vector.dot(globalForward, planeForward);
+  var dot = Vector.dot(rotationStartForward, planeForward);
   if (dot > 1) dot = 1;
   if (dot < -1) dot = -1;
 
   var theta = Math.acos(dot); // 0..pi
 
-  // sign by X of cross(globalForward, planeForward)
-  var cross = Vector.cross(globalForward, planeForward);
+  // sign by X of cross(aForward, bForward)
+  var cross = Vector.cross(rotationStartForward, planeForward);
   var sign = (cross.x >= 0) ? 1 : -1;
   
   return normalizeDegrees(radToDeg(theta) * sign);
