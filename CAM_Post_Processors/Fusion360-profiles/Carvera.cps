@@ -693,6 +693,7 @@ function forceWorkPlane() {
 }
 
 var currentAAngle = 0;
+var previousAAngle = 0;
 
 function defineWorkPlane(_section, _setWorkPlane) {
   var abc = new Vector(0, 0, 0);
@@ -730,11 +731,15 @@ function defineWorkPlane(_section, _setWorkPlane) {
         }
       }
 
+      previousAAngle = currentAAngle;
       currentAAngle = calculateAAxisRotation();
-      writeComment("Retracting to safe position for possible A axis rotation");
-      writeRetract(Z, Y);
-      var angle = Math.round(currentAAngle * 1000) / 1000;
-      writeBlock(gAbsIncModal.format(90), gFormat.format(54), gFormat.format(0), "A" + angle, formatComment("Rotate the A axis to align WCS and model plane"));
+
+      if(currentAAngle - previousAAngle > 0.001) { // Only rotate if the angle change is relevant to avoid unnecessary retracts and moves
+        writeComment("Retracting to safe position for possible A axis rotation");
+        writeRetract(Z, Y);
+        var angle = Math.round(currentAAngle * 1000) / 1000;
+        writeBlock(gAbsIncModal.format(90), gFormat.format(54), gFormat.format(0), "A" + angle, formatComment("Rotate the A axis to align WCS and model plane"));
+      }
     } else {
       var remaining = _section.workPlane;
       if (!isSameDirection(remaining.forward, new Vector(0, 0, 1))) {
