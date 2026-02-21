@@ -350,7 +350,7 @@ def sendToSmoothie(ip, GCODE, fname):
 
 def parse(pathobj):
     global SPINDLE_SPEED
-
+    import sys
     out = ""
     lastcommand = None
     precision_string = "." + str(PRECISION) + "f"
@@ -394,6 +394,12 @@ def parse(pathobj):
                             "G00",
                         ]:  # linuxcnc doesn't use rapid speeds
                             speed = Units.Quantity(c.Parameters["F"], FreeCAD.Units.Velocity)
+                            if float(speed.getValueAs(UNIT_SPEED_FORMAT))<5 :
+                                FreeCAD.Console.PrintError(
+                                    "feed rate of zero found. Posting cancelled"
+                                )
+                                sys.exit()
+
                             outstring.append(
                                 param
                                 + format(
@@ -406,6 +412,11 @@ def parse(pathobj):
                     elif param == "S":
                         outstring.append(param + str(c.Parameters["S"]))
                         SPINDLE_SPEED = c.Parameters["S"]
+                        if SPINDLE_SPEED <5 :
+                            FreeCAD.Console.PrintError(
+                                "spindle speed of zero found"
+                            )
+                            sys.exit()
                     else:
                         pos = Units.Quantity(c.Parameters[param], FreeCAD.Units.Length)
                         outstring.append(
@@ -413,6 +424,10 @@ def parse(pathobj):
                         )
             if command in ["G1", "G01", "G2", "G02", "G3", "G03"]:
                 outstring.append("S" + str(SPINDLE_SPEED))
+                if SPINDLE_SPEED <5 :
+                    FreeCAD.Console.PrintError(
+                        "spindle speed of zero found"
+                    )
 
             # store the latest command
             lastcommand = command
