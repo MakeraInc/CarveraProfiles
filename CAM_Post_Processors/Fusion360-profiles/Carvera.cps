@@ -189,6 +189,8 @@ properties = {
       {title:"Carvera Air Tool Changes", id:"carvAirMtc"}
     ],
     value: "carvAirMtc",
+
+
     scope: "post"
   },
   useShankSizeForManualChange: {
@@ -718,6 +720,7 @@ function defineWorkPlane(_section, _setWorkPlane) {
 
       if (!currOrigin) {
         error(localize("Unable to resolve WCS origin in world space."));
+				 
       }
 
       if (fourthAxisRotationPreviousLocation === undefined) {
@@ -741,12 +744,12 @@ function defineWorkPlane(_section, _setWorkPlane) {
         writeBlock(gAbsIncModal.format(90), gFormat.format(54), gFormat.format(0), "A" + angle, formatComment("Rotate the A axis to align WCS and model plane"));
       }
     } else {
-      var remaining = _section.workPlane;
-      if (!isSameDirection(remaining.forward, new Vector(0, 0, 1))) {
-        error(localize("Tool axis must be vertical when automatic 4th axis rotation is disabled."));
-        return abc;
+      var abc = getWorkPlaneMachineABC(_section.workPlane);
+
+      if (_setWorkPlane) {
+          writeRetract(Z);
+          positionABC(abc, true);
       }
-      setRotation(remaining);
     }
     if (currentSection && (currentSection.getId() == _section.getId())) {
       operationSupportsTCP = currentSection.getOptimizedTCPMode() == OPTIMIZE_NONE;
