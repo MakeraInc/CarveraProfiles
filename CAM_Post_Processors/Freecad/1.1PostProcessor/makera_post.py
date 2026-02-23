@@ -32,6 +32,7 @@ import shlex
 from builtins import open as pyopen
 
 TOOLTIP = """
+Version 1.1.0
 This is a postprocessor file for the Path workbench. It is used to
 take a pseudo-G-code fragment outputted by a Path object, and output
 real G-code suitable for a makera cnc machine with a smoothieware based controller. This postprocessor, once placed
