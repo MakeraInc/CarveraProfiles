@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.3.0";
+description = "Makera Carvera Community Post v1.3.1";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
