@@ -367,8 +367,10 @@ function onParameter(name, value) {
     } else if (String(value).toUpperCase() == "LIGHTOFF"){
       writeBlock("M822 (Turn Off Light)")
     } else if (String(value).toUpperCase() == "EXTON"){
+      writeBlock("M400")
       writeBlock("M851 S100 (External Control On 100)")
     } else if (String(value).toUpperCase() == "EXTOFF"){
+      writeBlock("M400")
       writeBlock("M852 (External Control Off)")
     } else if (String(value).toUpperCase() == "SHRINKA"){
       writeBlock("G92.4 A0 S0 (shrink the a axis so A365 becomes A5)")
