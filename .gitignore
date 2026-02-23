@@ -1,4 +1,10 @@
+# OS metadata
+.DS_Store
 **/.DS_Store
-**/__MACOSX/**
-**/~$*
-.vscode/**
+Thumbs.db
+Desktop.ini
+
+# macOS archive/resource-fork artifacts
+__MACOSX/
+**/__MACOSX/
+._*
