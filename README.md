@@ -112,6 +112,13 @@ Checkout the [Releases Page](https://github.com/MakeraInc/CarveraProfiles/releas
 When saving Tool paths, select Carvera Desktop CNC Machine and a suitable post processor for your job.
 ![VCarve Save](/img/VCarve-Save.png)
 
+When working with 4th axis parts:
+1: Set your Z to be the center of your stock, not the surface, or you'll have a bad day.
+2: Vcarve pro rounding toolpaths assume that the stock starts flat.  Insert your stock, rotate it to flat (use a bubble level if you want), then in Carvera control press the "A" control at the top and then click "A=0" to zero out the rotation and set your start.  The toolpath will rotate the stock 45degress to bring the corner to the top when it starts and if all goes well, the bit will just kiss the corner as it starts.
+3: The jaws on the headstock are invertible! if you have a smaller workpiece, you can flip the jaws around and grab much smaller things.  The Jaws are marked 1-4 (I added a paint pen number to see them easier to distinguish, but it is stamped on there as well), when putting them in normally (longer part of the jaw on the outside, you want to do them in order of 1-4.  If you are flipping them, you need to re-insert them into the headstock in reverse order, 4-1, otherwise they won't close evenly and your stock will be off center and you'll have a bad day.
+
+Thanks to renderman on the discord for this information!
+
 
 ----
 # LightBurn
