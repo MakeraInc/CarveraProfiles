@@ -240,12 +240,12 @@ var coolants = [
   {id:COOLANT_FLOOD, on:8},
   {id:COOLANT_MIST},
   {id:COOLANT_THROUGH_TOOL},
-  {id:COOLANT_AIR, on:7},
+  {id:COOLANT_AIR, on:[400,7]},
   {id:COOLANT_AIR_THROUGH_TOOL},
   {id:COOLANT_SUCTION},
   {id:COOLANT_FLOOD_MIST},
   {id:COOLANT_FLOOD_THROUGH_TOOL},
-  {id:COOLANT_OFF, off:9}
+  {id:COOLANT_OFF, off:[400,9]}
 ];
 
 var gFormat = createFormat({prefix:"G", decimals:0});
