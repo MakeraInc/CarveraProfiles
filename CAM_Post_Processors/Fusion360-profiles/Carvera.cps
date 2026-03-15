@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.3.1";
+description = "Makera Carvera Community Post v1.3.2";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -1226,7 +1226,7 @@ function onDwell(seconds) {
 }
 
 function onSpindleSpeed(spindleSpeed) {
-  writeBlock(sOutput.format(spindleSpeed));
+  writeBlock(sOutput.format(spindleSpeed), mFormat.format(tool.clockwise ? 3 : 4));
 }
 
 var pendingRadiusCompensation = -1;
