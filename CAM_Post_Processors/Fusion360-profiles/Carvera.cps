@@ -193,14 +193,6 @@ properties = {
 
     scope: "post"
   },
-  useShankSizeForManualChange: {
-    title      : "Write Manual Tool Changes when Shank Size Changes",
-    description: "",
-    group      : "preferences",
-    type       : "boolean",
-    value      : true,
-    scope      : "post"
-  },
   rotate4thAxisRelativeToModelPlane: {
     title      : "Automatic rotation of the 4th Axis",
     description: "Automatically rotates the 4th axis between consecutive setups. This means that the X-axis of the part has to be the rotation axis for the A axis. It will calculates the difference between consecutive model planes and automatically rotate the A axis accordingly between each setup. Setup 1 will be treated as the A-axis rotation of 0.",
@@ -1142,13 +1134,6 @@ function onSection() {
         writeComment("as a result of manual tool change selected in tool settings");
       }
       performStockManualToolChange(tloValue);
-
-    } else if ((!isFirstSection() && getProperty("useShankSizeForManualChange") && Math.abs(getToolShaftDiameterMm(tool) - getToolShaftDiameterMm(getPreviousSection().getTool())) > 0.001)){
-
-        writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
-		    writeComment("as a result of tool shank size change");
-        performStockManualToolChange(tloValue);
-
     } else {
         if (previousToolChangeWasManual && e_manualToolChangeBehavior == "fusionMtc") {
 		      writeComment("Manual Tool Removal as a result of previous manual tool change");
