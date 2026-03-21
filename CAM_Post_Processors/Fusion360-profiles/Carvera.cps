@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.3.4";
+description = "Makera Carvera Community Post v1.3.5";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -173,6 +173,15 @@ properties = {
     value      : false,
     scope      : "post"
   },
+  useManual4thAxisRotations: {
+    title      : "Use Manual NC Code to rotate A axis",
+    description: "If you are using the free version of fusion and the manual NC to set A axis rotations, set this to true. Note that it will no longer put a G0 A0 at the top of every operation so you have to define a axis rotations manually, it will not automatically rotate to zero at the start of the file",
+    group      : "preferences",
+    type       : "boolean",
+    value      : false,
+    scope      : "post"
+  },
+  
   yAxisSafePosition: {
     title      : "Safe Y-axis position for A-axis rotation",
     description: "The Y-axis position to move to when performing a safe A-axis rotation. A value of 0 means that the Y-axis will not be moved during A-axis rotations. This setting can be left default for normal operation.",
@@ -624,6 +633,8 @@ function defineMachine() {
 // End of machine configuration logic
 
 function onOpen() {
+
+  
   // define and enable machine configuration
   receivedMachineConfiguration = machineConfiguration.isReceived();
 
@@ -731,6 +742,7 @@ function forceWorkPlane() {
 
 var currentAAngle = 0;
 var previousAAngle = 0;
+var toolOrientationUsed = false;
 
 function defineWorkPlane(_section, _setWorkPlane) {
   var abc = new Vector(0, 0, 0);
@@ -745,9 +757,14 @@ function defineWorkPlane(_section, _setWorkPlane) {
     } else {
       abc = getWorkPlaneMachineABC(_section.workPlane);
       if (_setWorkPlane) {
-        setWorkPlane(abc);
+        var tol = 1e-6;
+        if (!getProperty("useManual4thAxisRotations")||(Math.abs(abc.x) > tol || Math.abs(abc.y) > tol || Math.abs(abc.z) > tol)||toolOrientationUsed){
+          setWorkPlane(abc);
+          toolOrientationUsed = true;
+      }
       }
     }
+  
   } else { // pure 3D
     // Inject a 4th axis rotation if the WCS and model plane are not aligned
     if (getProperty("rotate4thAxisRelativeToModelPlane")) {
@@ -783,7 +800,7 @@ function defineWorkPlane(_section, _setWorkPlane) {
 
       if (_setWorkPlane) {
           writeRetract(Z);
-          positionABC(abc, true);
+        positionABC(abc, true);
       }
     }
     if (currentSection && (currentSection.getId() == _section.getId())) {
