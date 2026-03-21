@@ -150,14 +150,15 @@ properties = {
   },
     manualToolChangeBehavior: {
     title      : "Manual Tool Change Behavior",
-    description: "If you are using the Carvera Air, choose the Carvera Air option. If you are using the carvera community firmware, that option will allow you to use tools 0-99. If you are using the stock carvera firmware on the non air variant, choose the fusion manual tool changes to generate tool changes when a tool number is greater than 6, the shank size changes, or the tool is marked for manual tool change. If you want the default behavior for the Carvera where it alarms on any tool number greater than 6, choose the first option",
+    description: "If you are using community firmware, select the community firmware option. If you are using a stock machine, choose the relavent option. The Stock C1 with manual tool changes will add code to do manual tool changes on tool numbers greater than 6 or the tool is marked for manual change, with the option to set up manual tool changes when the shank size changes. The community firmware does this automatically",
     group      : "preferences",
     type       : "enum",
     values     : [
-      {title:"Error On More Than 6 Tools", id:"error6"},
-      {title:"Fusion Manual Tool Changes", id:"fusionMtc"},
-      {title:"Carvera Community Tool Changes", id:"carvcomMtc"},
-      {title:"Carvera Air Tool Changes", id:"carvAirMtc"}
+      {title:"Stock Air", id:"carvAirMtc"},
+      {title:"Stock C1", id:"error6"},
+      {title:"Stock C1 with Manual Tool Changes", id:"fusionMtc"},
+      {title:"Carvera Community", id:"carvcomMtc"},
+   
     ],
     value: "carvAirMtc",
 
