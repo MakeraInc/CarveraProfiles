@@ -240,12 +240,12 @@ var coolants = [
   {id:COOLANT_FLOOD, on:8},
   {id:COOLANT_MIST},
   {id:COOLANT_THROUGH_TOOL},
-  {id:COOLANT_AIR, on:7},
+  {id:COOLANT_AIR, on:[400,7]},
   {id:COOLANT_AIR_THROUGH_TOOL},
   {id:COOLANT_SUCTION},
   {id:COOLANT_FLOOD_MIST},
   {id:COOLANT_FLOOD_THROUGH_TOOL},
-  {id:COOLANT_OFF, off:9}
+  {id:COOLANT_OFF, off:[400,9]}
 ];
 
 var gFormat = createFormat({prefix:"G", decimals:0});
@@ -351,20 +351,28 @@ function onParameter(name, value) {
     } else if (String(value).toUpperCase() == "RESETFEEDOVERRIDE"){
       writeBlock("M220 S100 (Reset Feed Speed override)")
     } else if (String(value).toUpperCase() == "AIRON"){
+      writeBlock("M400")
       writeBlock("M7 (Compressed Air On)")
     } else if (String(value).toUpperCase() == "AIROFF"){
+      writeBlock("M400")
       writeBlock("M9 (Compressed Air Off)")
     } else if (String(value).toUpperCase() == "VACON"){
+      writeBlock("M400")
       writeBlock("M801 S100 (Vacuum On)")
     } else if (String(value).toUpperCase() == "VACOFF"){
+      writeBlock("M400")
       writeBlock("M802 (Vacuum Off)")
     } else if (String(value).toUpperCase() == "AUTOVACON"){
+      writeBlock("M400")
       writeBlock("M331 (Turn On Auto Vacuum)")
     } else if (String(value).toUpperCase() == "AUTOVACOFF"){
+      writeBlock("M400")
       writeBlock("M332 (Turn Off Auto Vacuum)")
     } else if (String(value).toUpperCase() == "LIGHTON"){
+      writeBlock("M400")
       writeBlock("M821 (Turn On Light)")
     } else if (String(value).toUpperCase() == "LIGHTOFF"){
+      writeBlock("M400")
       writeBlock("M822 (Turn Off Light)")
     } else if (String(value).toUpperCase() == "EXTON"){
       writeBlock("M400")
@@ -1103,6 +1111,7 @@ function onSection() {
       warning(localize("Spindle speed exceeds maximum value."));
     }
     if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(400));
       writeBlock(mFormat.format(851), pwmOutput.format(100));
     }
     writeBlock(
@@ -1458,6 +1467,7 @@ function onCommand(command) {
     forceSpindleSpeed = true;
     forceCoolant = true;
     if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(400));
       writeBlock(mFormat.format(852));
     }
     return;
@@ -1466,6 +1476,7 @@ function onCommand(command) {
     forceSpindleSpeed = true;
     forceCoolant = true;
     if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(400));
       writeBlock(mFormat.format(852));
     }
     return;
@@ -1475,12 +1486,14 @@ function onCommand(command) {
     forceSpindleSpeed = true;
     forceCoolant = true;
     if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(400));
       writeBlock(mFormat.format(852));
     }
     writeComment("Optional Stop End");
     return;
   case COMMAND_START_SPINDLE:
     if (getProperty("defaultUseExternalControl")) {
+      writeBlock(mFormat.format(400));
       writeBlock(mFormat.format(851), pwmOutput.format(100));
     }
     onCommand(tool.clockwise ? COMMAND_SPINDLE_CLOCKWISE : COMMAND_SPINDLE_COUNTERCLOCKWISE);
@@ -1607,13 +1620,13 @@ function getCoolantCodes(coolant) {
     m = !coolantOff ? coolantCodes.off : coolantOff;
     if (currentCoolantMode == COOLANT_AIR && getProperty("useExtForAirCoolant")) {
       currentCoolantMode = coolant;
-      return [mFormat.format(852)];
+      return [mFormat.format(400), mFormat.format(852)];
     }
   } else {
     coolantOff = coolantCodes.off;
     if (coolant == COOLANT_AIR && getProperty("useExtForAirCoolant")) {
       currentCoolantMode = coolant;
-      return ["M851S100"];
+      return [mFormat.format(400), "M851S100"];
     }
 
     m = coolantCodes.on;
