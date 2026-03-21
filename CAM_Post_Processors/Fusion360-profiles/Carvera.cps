@@ -193,14 +193,6 @@ properties = {
 
     scope: "post"
   },
-  useShankSizeForManualChange: {
-    title      : "Write Manual Tool Changes when Shank Size Changes",
-    description: "",
-    group      : "preferences",
-    type       : "boolean",
-    value      : true,
-    scope      : "post"
-  },
   rotate4thAxisRelativeToModelPlane: {
     title      : "Automatic rotation of the 4th Axis",
     description: "Automatically rotates the 4th axis between consecutive setups. This means that the X-axis of the part has to be the rotation axis for the A axis. It will calculates the difference between consecutive model planes and automatically rotate the A axis accordingly between each setup. Setup 1 will be treated as the A-axis rotation of 0.",
@@ -215,6 +207,22 @@ properties = {
     group      : "preferences",
     type       : "integer",
     value      : -100,
+    scope      : "post"
+  },
+  useToolCommentForChangeParameters: {
+    title      : "Add the tool comment field to the change command",
+    description: "Use the tool comment field to add parameters to the tool change command (e.g. M6 T1 X-12 R3, where \"X-12 R3\" is in the comment field)",
+    group      : "preferences",
+    type       : "boolean",
+    value      : false,
+    scope      : "post"
+  },
+  issueColletChangeOnShankSizeChange: {
+    title      : "Add the collet change parameter to the tool change command",
+    description: "Add the collet change parameter to the tool change command (e.g. M6 T1 S1, where \"S1\" is the collet change parameter)",
+    group      : "preferences",
+    type       : "boolean",
+    value      : false,
     scope      : "post"
   },
 };
@@ -313,6 +321,61 @@ function writeBlock() {
 
 function formatComment(text) {
   return "(" + String(text).replace(/[()]/g, "") + ")";
+}
+
+/** Standard collet diameters in mm (order: 6.35 before 6 to match correctly). Map to S1-S5; do not change S numbering. */
+var STANDARD_SHAFT_DIAMETERS_MM = [3, 3.175, 4, 6.35, 6, 8];
+var STANDARD_SHAFT_TOLERANCE_MM = 0.01;
+
+/**
+  Analyse tool.shaft sections: if any section diameter matches 3.175, 4, 6, 6.35 or 8 mm, return that value in mm.
+  getDiameter(i) is in current unit (MM or IN); comparison is in mm.
+  Returns the matching standard diameter (number) or undefined if no match / no shaft.
+*/
+function getMatchingShaftDiameterMm(tool) {
+  if (!tool.shaft || !tool.shaft.hasSections()) {
+    return undefined;
+  }
+  var n = tool.shaft.getNumberOfSections();
+  for (var i = 0; i < n; ++i) {
+    var dia = tool.shaft.getDiameter(i);
+    var diaMm = (unit == MM) ? Number(dia) : (Number(dia) * 25.4);
+    if (isNaN(diaMm)) continue;
+    for (var j = 0; j < STANDARD_SHAFT_DIAMETERS_MM.length; ++j) {
+      if (Math.abs(diaMm - STANDARD_SHAFT_DIAMETERS_MM[j]) <= STANDARD_SHAFT_TOLERANCE_MM) {
+        return STANDARD_SHAFT_DIAMETERS_MM[j];
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+  Get shaft diameter in mm for a tool: prefer segment match (3/3.175/4/6/6.35/8), else tool.shaftDiameter in mm.
+*/
+function getToolShaftDiameterMm(tool) {
+  var match = getMatchingShaftDiameterMm(tool);
+  if (match !== undefined) return match;
+  var raw = (typeof tool.shaftDiameter === "number") ? tool.shaftDiameter : 0;
+  return (unit == MM) ? raw : (raw * 25.4);
+}
+
+/**
+  Returns S1-S5 parameter for tool change when shank diameter changed.
+  DO NOT CHANGE THIS NUMBERING: S1=3.175mm, S2=4mm, S3=6mm, S4=6.35mm, S5=8mm.
+  diameterMm in mm. Returns "" if no match.
+*/
+function getShankSizeSuffix(diameterMm) {
+  var d = Number(diameterMm);
+  if (isNaN(d)) return "";
+  var tol = STANDARD_SHAFT_TOLERANCE_MM;
+  if (Math.abs(d - 3) <= tol) return "S1";
+  if (Math.abs(d - 3.175) <= tol) return "S2";
+  if (Math.abs(d - 4) <= tol) return "S3";
+  if (Math.abs(d - 6.35) <= tol) return "S5";
+  if (Math.abs(d - 6) <= tol) return "S4";
+  if (Math.abs(d - 8) <= tol) return "S6";
+  return "";
 }
 
 /**
@@ -1006,6 +1069,13 @@ function onSection() {
 
     setCoolant(COOLANT_OFF);
 
+    // Shank diameter change: add S1-S5 to M6 when shaft diameter changed (S1=3.175mm, S2=4mm, S3=6mm, S4=6.35mm, S5=8mm; do not change numbering)
+    // Use shaft segments (Tool tab) to match standard diameter; fallback to tool.shaftDiameter
+    var shaftDiameterMm = getToolShaftDiameterMm(tool);
+    var prevShaftMm = !isFirstSection() ? getToolShaftDiameterMm(getPreviousSection().getTool()) : 0;
+    var shankDiameterChanged = !isFirstSection() && (Math.abs(shaftDiameterMm - prevShaftMm) > 0.001);
+    var shaftParam = (shankDiameterChanged || isFirstSection()) ? getShankSizeSuffix(shaftDiameterMm) : "";
+
     if (tool.number > numberOfToolSlots) {
       warning(localize("Tool number exceeds maximum value."));
     }
@@ -1019,14 +1089,22 @@ function onSection() {
     }
 
     if (e_manualToolChangeBehavior == "carvAirMtc"){ //any tool number accepted
-      writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
+      var toolChangeParameters = "";
+      if (getProperty("useToolCommentForChangeParameters")){
+        toolChangeParameters = tool.comment;
+      }
+      if (getProperty("issueColletChangeOnShankSizeChange")){
+        toolChangeParameters = toolChangeParameters + " " + shaftParam;
+      }
 
-      if (tool.comment) {
+      writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number) + " " + toolChangeParameters);
+
+      if (tool.comment && !getProperty("useToolCommentForChangeParameters")) {
         writeComment(tool.comment);
       }
-    }else if (e_manualToolChangeBehavior == "carvcomMtc"){
+    } else if (e_manualToolChangeBehavior == "carvcomMtc"){
 
-      if (tloValue) {
+      if (tloValue && !getProperty("useToolCommentForChangeParameters")) {
         if (tloValue === "A") {
             writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number) + " C1");
         } else if (tloValue === "M") {
@@ -1040,7 +1118,15 @@ function onSection() {
             }
         }
       } else {
-          writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number));
+        var toolChangeParameters = "";
+        if (getProperty("useToolCommentForChangeParameters")){
+          toolChangeParameters = tool.comment;
+        }
+        if (getProperty("issueColletChangeOnShankSizeChange")){
+          toolChangeParameters = toolChangeParameters + " " + shaftParam;
+        }
+
+        writeToolBlock(mFormat.format(6), "T" + toolFormat.format(tool.number) + " " + toolChangeParameters);
       }
     }else if (tool.number > 6 || tool.manualToolChange) {
       writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
@@ -1048,13 +1134,6 @@ function onSection() {
         writeComment("as a result of manual tool change selected in tool settings");
       }
       performStockManualToolChange(tloValue);
-
-    } else if ((!isFirstSection() && getProperty("useShankSizeForManualChange") && Math.abs(tool.shaftDiameter - getPreviousSection().getTool().shaftDiameter)  >  0.001)){
-
-        writeComment("Manual Tool Change To #" + toolFormat.format(tool.number));
-		    writeComment("as a result of tool shank size change");
-        performStockManualToolChange(tloValue);
-
     } else {
         if (previousToolChangeWasManual && e_manualToolChangeBehavior == "fusionMtc") {
 		      writeComment("Manual Tool Removal as a result of previous manual tool change");
