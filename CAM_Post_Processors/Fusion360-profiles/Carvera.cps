@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.3.2";
+description = "Makera Carvera Community Post v1.3.4";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -101,35 +101,6 @@ properties = {
     group      : "homePositions",
     type       : "boolean",
     value      : true,
-    scope      : "post"
-  },
-  showSequenceNumbers: {
-    title      : "Use sequence numbers",
-    description: "'Yes' outputs sequence numbers on each block, 'Only on tool change' outputs sequence numbers on tool change blocks only, and 'No' disables the output of sequence numbers.",
-    group      : "formats",
-    type       : "enum",
-    values     : [
-      {title:"Yes", id:"true"},
-      {title:"No", id:"false"},
-      {title:"Only on tool change", id:"toolChange"}
-    ],
-    value: "false",
-    scope: "post"
-  },
-  sequenceNumberStart: {
-    title      : "Start sequence number",
-    description: "The number at which to start the sequence numbers.",
-    group      : "formats",
-    type       : "integer",
-    value      : 10,
-    scope      : "post"
-  },
-  sequenceNumberIncrement: {
-    title      : "Sequence number increment",
-    description: "The amount by which the sequence number is incremented by in each block.",
-    group      : "formats",
-    type       : "integer",
-    value      : 1,
     scope      : "post"
   },
   separateWordsWithSpace: {
@@ -298,7 +269,6 @@ var fourthAxisRotationPreviousLocation = undefined;
 var WARNING_WORK_OFFSET = 0;
 
 // collected state
-var sequenceNumber;
 var forceSpindleSpeed = false;
 var currentWorkOffset;
 var retracted = false; // specifies that the tool has been retracted to the safe plane
@@ -311,12 +281,8 @@ function writeBlock() {
   if (!text) {
     return;
   }
-  if (getProperty("showSequenceNumbers") == "true") {
-    writeWords2("N" + sequenceNumber, arguments);
-    sequenceNumber += getProperty("sequenceNumberIncrement");
-  } else {
-    writeWords(arguments);
-  }
+
+  writeWords(arguments);
 }
 
 function formatComment(text) {
@@ -382,10 +348,7 @@ function getShankSizeSuffix(diameterMm) {
   Writes the specified block - used for tool changes only.
 */
 function writeToolBlock() {
-  var show = getProperty("showSequenceNumbers");
-  setProperty("showSequenceNumbers", (show == "true" || show == "toolChange") ? "true" : "false");
   writeBlock(arguments);
-  setProperty("showSequenceNumbers", show);
 }
 
 /**
@@ -671,8 +634,6 @@ function onOpen() {
   if (!getProperty("separateWordsWithSpace")) {
     setWordSeparator("");
   }
-
-  sequenceNumber = getProperty("sequenceNumberStart");
 
   if (programName) {
     writeComment(programName);
