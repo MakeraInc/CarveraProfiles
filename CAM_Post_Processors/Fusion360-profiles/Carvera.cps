@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.3.5";
+description = "Makera Carvera Community Post v1.4.0";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -632,9 +632,7 @@ function defineMachine() {
 }
 // End of machine configuration logic
 
-function onOpen() {
-
-  
+function onOpen(section) {
   // define and enable machine configuration
   receivedMachineConfiguration = machineConfiguration.isReceived();
 
@@ -672,10 +670,80 @@ function onOpen() {
     }
   }
 
+  var currentSection = getSection(0);
+
   // dump tool information
   if (getProperty("writeTools")) {
     dumpToolInformation();
   }
+
+
+
+
+
+
+
+  function wcsComment(text) {
+    writeln("( " + text + " )");
+  }
+
+  function fmtZ(val) {
+    return xyzFormat.format(val) + (unit == MM ? " mm" : " in");
+  }
+
+  var bbox     = currentSection.getBoundingBox();
+  var stockTop = currentSection.getParameter("operation:stockZHigh", 0);
+  var stockBot = currentSection.getParameter("operation:stockZLow",  0);
+
+  // WCS Z origin is at Z=0 in WCS space; compare against known references
+  var wcsZ = 0;
+  var tol  = spatial(0.001, MM);
+  var zRef;
+  var tzMax = -999999;
+  var tzMin =  999999;
+  var custom = false;
+  for (var i = 0; i < getNumberOfSections(); i++) {
+    var s = getSection(i);
+    if (s.workOffset == currentSection.workOffset) {
+      var zRange = s.getGlobalZRange();
+      if (zRange.getMaximum() > tzMax) { tzMax = zRange.getMaximum(); }
+      if (zRange.getMinimum() < tzMin) { tzMin = zRange.getMinimum(); }
+    }
+  }
+  if (Math.abs(wcsZ - stockTop) < tol) {
+    zRef = "Stock Top";
+  } else if (Math.abs(wcsZ - stockBot) < tol) {
+    zRef = "Stock Bottom";
+  } else {
+    custom = true;
+    var dStockTop = wcsZ - stockTop;
+    zRef = "Selected Point"
+         + " | " + fmtZ(Math.abs(dStockTop)) + (dStockTop < 0 ? " below" : " above") + " Stock Top"
+  }
+
+  
+
+  var sep = "===================================================";
+  wcsComment(sep);
+  wcsComment("  Z Origin Set To   : " + zRef);
+  wcsComment("  Stock Height                    : " + fmtZ(stockTop-stockBot));
+  if (custom){
+    wcsComment("  Stock Above Origin            : " + fmtZ(stockTop));
+    wcsComment("  Stock Below Origin            : " + fmtZ(stockBot));
+    wcsComment("  Toolpath Z Maximum from origin: " + fmtZ(tzMax));
+    wcsComment("  Toolpath Z Min from origin: " + fmtZ(tzMin));
+    wcsComment("  Toolpath Z Maximum from Stock Top: " + fmtZ(tzMax + dStockTop));
+    wcsComment("  Toolpath Z Min from Stock Top: " + fmtZ(tzMin + dStockTop));
+  } else {
+    wcsComment("  Toolpath Z Maximum from " + zRef + ": " + fmtZ(tzMax));
+    wcsComment("  Toolpath Z Min from " + zRef + ": " + fmtZ(tzMin));
+  }
+  wcsComment("");
+  wcsComment(sep);
+  writeln("");
+
+
+
 
   if ((getNumberOfSections() > 0) && (getSection(0).workOffset == 0)) {
     for (var i = 0; i < getNumberOfSections(); ++i) {
