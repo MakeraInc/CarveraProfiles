@@ -742,6 +742,31 @@ function onOpen(section) {
   wcsComment(sep);
   writeln("");
 
+  var partAttachPoint = currentSection.getPartAttachPoint();
+  var modelPlane = currentSection.getModelPlane();
+
+  var right   = modelPlane.right;
+  var up      = modelPlane.up;
+  // Derive the true Z axis from right and up instead of using forward
+  var forward = Vector.cross(right, up);
+
+  var localPartAttachPoint = new Vector(
+    Vector.dot(partAttachPoint, right),
+    Vector.dot(partAttachPoint, up),
+    Vector.dot(partAttachPoint, forward)
+  );
+  var xoffset = -localPartAttachPoint.x;
+  var yoffset = -localPartAttachPoint.y;
+  var zoffset = -localPartAttachPoint.z;
+  
+  wcsComment("The following values are based on the part position info used in fusion and can be used to roughly align the machine offset from anchor 1 if you use that feature.");
+  wcsComment("  X Offset   : " + fmtZ(xoffset));
+  wcsComment("  Y Offset   : " + fmtZ(yoffset));
+
+  writeln("");
+  wcsComment(sep);
+  writeln("");
+
 
 
 
