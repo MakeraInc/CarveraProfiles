@@ -82,7 +82,7 @@ properties = {
   writeMachine: {
     title      : "Write machine",
     description: "Output the machine settings in the header of the code.",
-    group      : "formats",
+    group      : "4. File Structure",
     type       : "boolean",
     value      : true,
     scope      : "post"
@@ -90,15 +90,15 @@ properties = {
   writeTools: {
     title      : "Write tool list",
     description: "Output a tool list in the header of the code.",
-    group      : "formats",
+    group      : "4. File Structure",
     type       : "boolean",
     value      : true,
     scope      : "post"
   },
   returnClearance: {
-    title      : "Return Clearance",
+    title      : "Return to Clearance",
     description: "Return to clearance position when the job is finished.",
-    group      : "homePositions",
+    group      : "4. File Structure",
     type       : "boolean",
     value      : true,
     scope      : "post"
@@ -106,7 +106,7 @@ properties = {
   separateWordsWithSpace: {
     title      : "Separate words with space",
     description: "Adds spaces between words if 'yes' is selected.",
-    group      : "formats",
+    group      : "4. File Structure",
     type       : "boolean",
     value      : true,
     scope      : "post"
@@ -114,7 +114,7 @@ properties = {
   splitFile: {
     title      : "Split file",
     description: "Select your desired file splitting option.",
-    group      : "preferences",
+    group      : "4. File Structure",
     type       : "enum",
     values     : [
       {title:"No splitting", id:"none"},
@@ -127,48 +127,15 @@ properties = {
   splitFileHeader: {
     title      : "Write Tool# and Header To Each Split By Toolpath File",
     description: "Write Tool# and Header To Each Split By Toolpath File",
-    group      : "preferences",
+    group      : "4. File Structure",
     type       : "boolean",
     value: true,
-    scope: "post"
-  },
-  defaultUseExternalControl: {
-    title      : "Spindle-based External Control",
-    description: "Turn the external PWM control on/off when the spindle is turned on/off.",
-    group      : "preferences",
-    type       : "boolean",
-    value: true,
-    scope: "post"
-  },
-  useExtForAirCoolant: {
-    title      : "Use Ext For Air Coolant",
-    description: "Turn the external PWM control on/off when the air coolant is turned on/off.",
-    group      : "preferences",
-    type       : "boolean",
-    value: false,
-    scope: "post"
-  },
-    manualToolChangeBehavior: {
-    title      : "Manual Tool Change Behavior",
-    description: "If you are using community firmware, select the community firmware option. If you are using a stock machine, choose the relavent option. The Stock C1 with manual tool changes will add code to do manual tool changes on tool numbers greater than 6 or the tool is marked for manual change, with the option to set up manual tool changes when the shank size changes. The community firmware does this automatically",
-    group      : "preferences",
-    type       : "enum",
-    values     : [
-      {title:"Stock Air", id:"carvAirMtc"},
-      {title:"Stock C1", id:"error6"},
-      {title:"Stock C1 with Manual Tool Changes", id:"fusionMtc"},
-      {title:"Carvera Community", id:"carvcomMtc"},
-   
-    ],
-    value: "carvAirMtc",
-
-
     scope: "post"
   },
   rotate4thAxisRelativeToModelPlane: {
     title      : "Automatic rotation of the 4th Axis",
-    description: "Automatically rotates the 4th axis between consecutive setups. This means that the X-axis of the part has to be the rotation axis for the A axis. It will calculates the difference between consecutive model planes and automatically rotate the A axis accordingly between each setup. Setup 1 will be treated as the A-axis rotation of 0.",
-    group      : "preferences",
+    description: "If you are using the free version of fusion: Automatically rotates the 4th axis between consecutive setups. This means that the X-axis of the part has to be the rotation axis for the A axis. It will calculates the difference between consecutive model planes and automatically rotate the A axis accordingly between each setup. Setup 1 will be treated as the A-axis rotation of 0.",
+    group      : "2. Free version enhancements",
     type       : "boolean",
     value      : false,
     scope      : "post"
@@ -176,32 +143,67 @@ properties = {
   useManual4thAxisRotations: {
     title      : "Use Manual NC Code to rotate A axis",
     description: "If you are using the free version of fusion and the manual NC to set A axis rotations, set this to true. Note that it will no longer put a G0 A0 at the top of every operation so you have to define a axis rotations manually, it will not automatically rotate to zero at the start of the file",
-    group      : "preferences",
+    group      : "2. Free version enhancements",
     type       : "boolean",
     value      : false,
     scope      : "post"
   },
   
+  
+  defaultUseExternalControl: {
+    title      : "Spindle-based External Control",
+    description: "Turn the external PWM control on/off when the spindle is turned on/off.",
+    group      : "1. Preferences",
+    type       : "boolean",
+    value: true,
+    scope: "post"
+  },
+  useExtForAirCoolant: {
+    title      : "Use Ext For Air Coolant",
+    description: "Turn the external PWM control on/off when the air coolant is turned on/off.",
+    group      : "1. Preferences",
+    type       : "boolean",
+    value: false,
+    scope: "post"
+  },
+    manualToolChangeBehavior: {
+    title      : "Manual Tool Change Behavior",
+    description: "If you are using community firmware, select the community firmware option. If you are using a stock machine, choose the relavent option. The Stock C1 with manual tool changes will add code to do manual tool changes on tool numbers greater than 6 or the tool is marked for manual change, with the option to set up manual tool changes when the shank size changes. The community firmware does this automatically",
+    group      : "1. Preferences",
+    type       : "enum",
+    values     : [
+      {title:"Stock Air", id:"carvAirMtc"},
+      {title:"Stock C1", id:"error6"},
+      {title:"Stock C1 with Manual Tool Changes", id:"fusionMtc"},
+      {title:"Carvera Community", id:"carvcomMtc", description:"works on both the C1 and Air and allows the use of the collet changes and offset tool support."},
+   
+    ],
+    value: "carvAirMtc",
+
+
+    scope: "post"
+  },
+  
   yAxisSafePosition: {
     title      : "Safe Y-axis position for A-axis rotation",
     description: "The Y-axis position to move to when performing a safe A-axis rotation. A value of 0 means that the Y-axis will not be moved during A-axis rotations. This setting can be left default for normal operation.",
-    group      : "preferences",
+    group      : "1. Preferences",
     type       : "integer",
     value      : -100,
     scope      : "post"
   },
   useToolCommentForChangeParameters: {
-    title      : "Add the tool comment field to the change command",
-    description: "Use the tool comment field to add parameters to the tool change command (e.g. M6 T1 X-12 R3, where \"X-12 R3\" is in the comment field)",
-    group      : "preferences",
+    title      : "Community Firmware Offset Tool Change Support",
+    description: "Community Firmware: Use the tool comment field to add parameters to the tool change command (e.g. M6 T1 X-12 R3, where \"X-12 R3\" is in the comment field). This allows the user to probe face mills",
+    group      : "1. Preferences",
     type       : "boolean",
     value      : false,
     scope      : "post"
   },
   issueColletChangeOnShankSizeChange: {
-    title      : "Add the collet change parameter to the tool change command",
-    description: "Add the collet change parameter to the tool change command (e.g. M6 T1 S1, where \"S1\" is the collet change parameter)",
-    group      : "preferences",
+    title      : "Community Firmware Collet Changes",
+    description: "Community Firmware: Add info about the collet to use to tool change commands. (e.g. M6 T1 S1, where \"S1\" is the collet change parameter)",
+    group      : "1. Preferences",
     type       : "boolean",
     value      : false,
     scope      : "post"
@@ -435,6 +437,8 @@ function onParameter(name, value) {
         } else if (sText2[0].toUpperCase() == "SAFERA") {
           if (sText2[1].match(/^-?\d+$/)){
             writeBlock("G53 G0 Z -2. (Goto Safe Height In Z)")
+            gMotionModal.reset();
+            writeBlock(gAbsIncModal.format(90), gFormat.format(53), gMotionModal.format(0), "Y" + xyzFormat.format(toPreciseUnit(safeYPosition, MM)), "Z" + xyzFormat.format(toPreciseUnit(-3, MM)));
             writeBlock("G0A"+sText2[1] + "(Rapid movement on a axis)")
           } else{
             invalid = true;
