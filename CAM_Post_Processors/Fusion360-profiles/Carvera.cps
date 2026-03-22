@@ -132,6 +132,22 @@ properties = {
     value: true,
     scope: "post"
   },
+  laserEtchPower: {
+    title      : "Laser etch power",
+    description: "Sets the laser etch power.",
+    group      : "3. Laser",
+    type       : "number",
+    value      : 0.1,
+    scope      : "post"
+  },
+  laserPower: {
+    title      : "Laser power",
+    description: "Sets the laser power.",
+    group      : "3. Laser",
+    type       : "number",
+    value      : 1,
+    scope      : "post"
+  },
   rotate4thAxisRelativeToModelPlane: {
     title      : "Automatic rotation of the 4th Axis",
     description: "If you are using the free version of fusion: Automatically rotates the 4th axis between consecutive setups. This means that the X-axis of the part has to be the rotation axis for the A axis. It will calculates the difference between consecutive model planes and automatically rotate the A axis accordingly between each setup. Setup 1 will be treated as the A-axis rotation of 0.",
@@ -221,6 +237,7 @@ wcsDefinitions = {
 var numberOfToolSlots = 9999;
 var previousToolChangeWasManual = false;
 var subprograms = new Array();
+var laser_used = false;
 
 var singleLineCoolant = false; // specifies to output multiple coolant codes in one line rather than in separate lines
 // samples:
@@ -249,6 +266,7 @@ var feedFormat = createFormat({decimals:(unit == MM ? 1 : 2), type:FORMAT_REAL})
 var inverseTimeFormat = createFormat({decimals:3, forceDecimal:true});
 var toolFormat = createFormat({decimals:0});
 var rpmFormat = createFormat({decimals:0});
+var powerFormat = createFormat({decimals:2});
 var pwmFormat = createFormat({decimals:0, maximum:100, minimum:0});
 var secFormat = createFormat({decimals:3, forceDecimal:true}); // seconds - range 0.001-1000
 var taperFormat = createFormat({decimals:1, scale:DEG});
@@ -264,6 +282,7 @@ var feedOutput = createVariable({prefix:"F"}, feedFormat);
 var inverseTimeOutput = createVariable({prefix:"F", force:true}, inverseTimeFormat);
 var pwmOutput = createVariable({prefix:"S", force:true}, pwmFormat);
 var sOutput = createVariable({prefix:"S"}, rpmFormat);
+var powerOutput = createOutputVariable({prefix:"S"}, powerFormat);
 
 // circular output
 var iOutput = createVariable({prefix:"I"}, xyzFormat);
@@ -379,7 +398,9 @@ function onPassThrough(text) {
 function onParameter(name, value) {
   var invalid = false;
   if (name == "action") {
-
+    if (value == "pierce"){
+      return;//nothing special happens
+    }
     if (String(value).toUpperCase() == "SPINDLEOFF"){
       writeBlock("M5 (Spindle Off)")
     } else if (String(value).toUpperCase() == "CLEARANCE"){
@@ -1156,6 +1177,20 @@ function onSection() {
       warning(localize("Tool number exceeds maximum value."));
     }
 
+    if (tool.type == TOOL_LASER_CUTTER){
+      writeToolBlock(mFormat.format(321));
+      writeBlock("M106")
+      laser_used = true;
+      return;
+    }
+
+    if (laser_used){
+      writeBlock("M5");
+      writeBlock("M107");
+      writeBlock("M322");
+      laser_used = false;
+    }
+
     var tloValue = parseTLO(tool.comment);//A is automatic and is the default, M is manual setting (C=0), a number set the value directly (H=-14)
 
     var e_manualToolChangeBehavior = getProperty("manualToolChangeBehavior");
@@ -1259,7 +1294,8 @@ function onSection() {
     (tool.clockwise != getPreviousSection().getTool().clockwise));
   if (spindleChanged) {
     forceSpindleSpeed = false;
-    if (spindleSpeed < 1) {
+    writeComment(tool.type);
+    if (spindleSpeed < 1 && tool.type != TOOL_LASER_CUTTER) {
       error(localize("Spindle speed out of range."));
     }
     if (spindleSpeed > 99999) {
@@ -1277,6 +1313,20 @@ function onSection() {
   // wcs
   if (insertToolCall) { // force work offset when changing tool
     currentWorkOffset = undefined;
+  }
+  if (currentSection.type == TYPE_JET) {
+    if (tool.type != TOOL_LASER_CUTTER) {
+      error(localize("The CNC does not support the required tool/process. Only laser cutting is supported."));
+    }
+
+    switch (currentSection.jetMode) {
+    case JET_MODE_THROUGH:
+    case JET_MODE_ETCHING:
+    case JET_MODE_VAPORIZE:
+      break;
+    default:
+      error(localize("Unsupported cutting mode."));
+    }
   }
 
   if (currentSection.workOffset != currentWorkOffset) {
@@ -1333,6 +1383,7 @@ function onSection() {
       yOutput.format(initialPosition.y)
     );
   }
+  writeJetCodes(true);
 }
 
 function performStockManualToolChange(tloValue) {
@@ -1381,6 +1432,12 @@ function performStockManualToolChange(tloValue) {
   }
 }
 
+function writeJetCodes(mode) {
+  if (currentSection.type == TYPE_JET && tool.type == TOOL_LASER_CUTTER) {
+    writeBlock(mFormat.format(mode ? 3 : 5)); // activate/deactivate laser
+  }
+}
+
 function onDwell(seconds) {
   if (seconds > 99999.999) {
     warning(localize("Dwelling time is out of range."));
@@ -1408,7 +1465,7 @@ function onRapid(_x, _y, _z) {
       error(localize("Radius compensation mode cannot be changed at rapid traversal."));
       return;
     }
-    writeBlock(gMotionModal.format(0), x, y, z);
+    writeBlock(gMotionModal.format(0), x, y, z, currentSection.type == TYPE_JET ? powerOutput.format(0) : "");
     feedOutput.reset();
   }
 }
@@ -1429,15 +1486,32 @@ function onLinear(_x, _y, _z, feed) {
       error(localize("Radius compensation mode is not supported."));
       return;
     } else {
-      writeBlock(gMotionModal.format(1), x, y, z, f);
+      writeBlock(gMotionModal.format(1), x, y, z, f, currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
     }
   } else if (f) {
     if (getNextRecord().isMotion()) { // try not to output feed without motion
       feedOutput.reset(); // force feed on next line
     } else {
-      writeBlock(gMotionModal.format(1), f);
+      writeBlock(gMotionModal.format(1), f, currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
     }
   }
+}
+
+function onPower(power) {
+  powerOutput.reset();
+}
+
+function getPower() {
+  switch (currentSection.jetMode) {
+  case JET_MODE_THROUGH:
+    return getProperty("laserPower");
+  case JET_MODE_ETCHING:
+    return getProperty("laserEtchPower");
+  case JET_MODE_VAPORIZE:
+  default:
+    error(localize("Laser cutting mode is not supported."));
+  }
+  return 0;
 }
 
 function getFeed(f) {
@@ -1557,15 +1631,15 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
     switch (getCircularPlane()) {
     case PLANE_XY:
       forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed), currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
       break;
     case PLANE_ZX:
       forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed), currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
       break;
     case PLANE_YZ:
       forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), yOutput.format(y), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), yOutput.format(y), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed), currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
       break;
     default:
       linearize(tolerance);
@@ -1574,15 +1648,15 @@ function onCircular(clockwise, cx, cy, cz, x, y, z, feed) {
     switch (getCircularPlane()) {
     case PLANE_XY:
       forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(17), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), jOutput.format(cy - start.y), feedOutput.format(feed), currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
       break;
     case PLANE_ZX:
       forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(18), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), iOutput.format(cx - start.x), kOutput.format(cz - start.z), feedOutput.format(feed), currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
       break;
     case PLANE_YZ:
       forceCircular(getCircularPlane());
-      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed));
+      writeBlock(gPlaneModal.format(19), gMotionModal.format(clockwise ? 2 : 3), xOutput.format(x), yOutput.format(y), zOutput.format(z), jOutput.format(cy - start.y), kOutput.format(cz - start.z), feedOutput.format(feed), currentSection.type == TYPE_JET ? powerOutput.format(power ? getPower() : 0) : "");
       break;
     default:
       linearize(tolerance);
@@ -1626,6 +1700,16 @@ function onCommand(command) {
       writeBlock(mFormat.format(852));
     }
     return;
+  case COMMAND_POWER_ON:
+    return;
+  case COMMAND_POWER_OFF:
+    return;
+
+  case COMMAND_BREAK_CONTROL:
+    writeComment("Tool Break Test");
+    writeBlock("M491.1");
+    return;
+
   case COMMAND_STOP_SPINDLE:
     writeBlock(mFormat.format(5));
     forceSpindleSpeed = true;
@@ -1685,6 +1769,7 @@ function onSectionEnd() {
   if (!isLastSection() && (getNextSection().getTool().coolant != tool.coolant)) {
     setCoolant(COOLANT_OFF);
   }
+  writeJetCodes(false);
   forceAny();
 }
 
@@ -1849,6 +1934,9 @@ function onReturnFromSafeRetractPosition(_x, _y, _z) {
 // End of onRewindMachine logic
 
 function onClose() {
+  if (laser_used){
+    writeBlock("M322");
+  }
   setCoolant(COOLANT_OFF);
 
   if (machineConfiguration.isMultiAxisConfiguration()) {
