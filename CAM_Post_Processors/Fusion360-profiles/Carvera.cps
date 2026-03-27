@@ -907,7 +907,7 @@ function defineWorkPlane(_section, _setWorkPlane) {
       previousAAngle = currentAAngle;
       currentAAngle = calculateAAxisRotation();
 
-      if(currentAAngle - previousAAngle > 0.001) { // Only rotate if the angle change is relevant to avoid unnecessary retracts and moves
+      if(Math.abs(currentAAngle - previousAAngle) > 0.001) { // Only rotate if the angle change is relevant to avoid unnecessary retracts and moves
         writeComment("Retracting to safe position for possible A axis rotation");
         writeRetract(Z, Y);
         var angle = Math.round(currentAAngle * 1000) / 1000;
