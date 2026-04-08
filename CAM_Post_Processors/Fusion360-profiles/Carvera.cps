@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.4.2";
+description = "Makera Carvera Community Post v1.4.3";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -459,6 +459,7 @@ function onParameter(name, value) {
           if (sText2[1].match(/^-?\d+$/)){
             writeBlock("G53 G0 Z -2. (Goto Safe Height In Z)")
             gMotionModal.reset();
+            safeYPosition = getProperty("yAxisSafePosition");
             writeBlock(gAbsIncModal.format(90), gFormat.format(53), gMotionModal.format(0), "Y" + xyzFormat.format(toPreciseUnit(safeYPosition, MM)), "Z" + xyzFormat.format(toPreciseUnit(-3, MM)));
             writeBlock("G0A"+sText2[1] + "(Rapid movement on a axis)")
           } else{
