@@ -358,6 +358,14 @@ function getToolShaftDiameterMm(tool) {
 }
 
 /**
+  Shaft diameter in current document units.
+*/
+function getShaftDiameter(tool) {
+  var diaMm = getToolShaftDiameterMm(tool);
+  return (unit == MM) ? diaMm : (diaMm / 25.4);
+}
+
+/**
   Returns S1-S5 parameter for tool change when shank diameter changed.
   DO NOT CHANGE THIS NUMBERING: S1=3.175mm, S2=4mm, S3=6mm, S4=6.35mm, S5=8mm.
   diameterMm in mm. Returns "" if no match.
@@ -566,44 +574,77 @@ function getBodyLength(tool) {
   return tool.bodyLength + tool.holderLength;
 }
 
+/**
+  Append " KEY=value" when value is a finite number.
+  By default requires value > 0; pass allowZero=true to also accept 0 (e.g. tip diameter).
+*/
+function appendToolField(comment, key, value, format, allowZero) {
+  if (typeof value != "number" || isNaN(value)) {
+    return comment;
+  }
+  if (allowZero ? value < 0 : value <= 0) {
+    return comment;
+  }
+  return comment + " " + key + "=" + format.format(value);
+}
+
+/**
+  Dump one comment line per tool for the header tool list.
+
+  Layout:
+  T<n>  <description>  <vendor>  <productId>  D=<diameter>
+    [CR=<corner radius>] [SD=<shaft>] [TD=<tip>] [FL=<flute>] [SL=<shoulder>]
+    [BL=<body>] [TP=<pitch>] [TAPER=<angle>deg] [- ZMIN=<z>] - <toolTypeName>
+
+  See https://cam.autodesk.com/posts/reference/classTool.html
+*/
 function dumpToolInformation() {
-    // dump tool information
+  var zRanges = {};
+  if (is3D()) {
+    var numberOfSections = getNumberOfSections();
+    for (var i = 0; i < numberOfSections; ++i) {
+      var section = getSection(i);
+      var zRange = section.getGlobalZRange();
+      var sectionTool = section.getTool();
+      if (zRanges[sectionTool.number]) {
+        zRanges[sectionTool.number].expandToRange(zRange);
+      } else {
+        zRanges[sectionTool.number] = zRange;
+      }
+    }
+  }
 
-      var zRanges = {};
-      if (is3D()) {
-        var numberOfSections = getNumberOfSections();
-        for (var i = 0; i < numberOfSections; ++i) {
-          var section = getSection(i);
-          var zRange = section.getGlobalZRange();
-          var tool = section.getTool();
-          if (zRanges[tool.number]) {
-            zRanges[tool.number].expandToRange(zRange);
-          } else {
-            zRanges[tool.number] = zRange;
-          }
-        }
+  var tools = getToolTable();
+  if (tools.getNumberOfTools() > 0) {
+    for (var i = 0; i < tools.getNumberOfTools(); ++i) {
+      var tool = tools.getTool(i);
+      var comment = "T" + toolFormat.format(tool.number) + "  " +
+        tool.description + "  " +
+        tool.vendor + "  " +
+        tool.productId + "  " +
+        "D=" + xyzFormat.format(tool.diameter);
+
+      // Extra geometry
+      comment = appendToolField(comment, "CR", tool.cornerRadius, xyzFormat);
+      comment = appendToolField(comment, "SD", getShaftDiameter(tool), xyzFormat);
+      comment = appendToolField(comment, "TD", tool.tipDiameter, xyzFormat, true);
+      comment = appendToolField(comment, "FL", tool.fluteLength, xyzFormat);
+      comment = appendToolField(comment, "SL", tool.shoulderLength, xyzFormat);
+      comment = appendToolField(comment, "BL", tool.bodyLength, xyzFormat);
+      comment = appendToolField(comment, "TP", tool.threadPitch, xyzFormat);
+
+      if ((tool.taperAngle > 0) && (tool.taperAngle < Math.PI)) {
+        comment += " TAPER=" + taperFormat.format(tool.taperAngle) + "deg";
       }
 
-      var tools = getToolTable();
-      if (tools.getNumberOfTools() > 0) {
-        for (var i = 0; i < tools.getNumberOfTools(); ++i) {
-          var tool = tools.getTool(i);
-          var comment = "T" + toolFormat.format(tool.number) + "  " +
-            tool.description + "  " +
-            tool.vendor + "  " +
-            tool.productId + "  " +
-            "D=" + xyzFormat.format(tool.diameter) + " " +
-            localize("CR") + "=" + xyzFormat.format(tool.cornerRadius);
-          if ((tool.taperAngle > 0) && (tool.taperAngle < Math.PI)) {
-            comment += " " + localize("TAPER") + "=" + taperFormat.format(tool.taperAngle) + localize("deg");
-          }
-          if (zRanges[tool.number]) {
-            comment += " - " + localize("ZMIN") + "=" + xyzFormat.format(zRanges[tool.number].getMinimum());
-          }
-          comment += " - " + getToolTypeName(tool.type);
-          writeComment(comment);
-        }
+      if (zRanges[tool.number]) {
+        comment += " - ZMIN=" + xyzFormat.format(zRanges[tool.number].getMinimum());
       }
+
+      comment += " - " + getToolTypeName(tool.type);
+      writeComment(comment);
+    }
+  }
 }
 
 function defineMachine() {
