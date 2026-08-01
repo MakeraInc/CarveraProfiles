@@ -262,7 +262,7 @@ var mFormat = createFormat({prefix:"M", decimals:0});
 var xyzFormat = createFormat({decimals:(unit == MM ? 3 : 4), type:FORMAT_REAL});
 var rFormat = xyzFormat; //radius
 var abcFormat = createFormat({decimals:3, forceDecimal:true, scale:DEG});
-var feedFormat = createFormat({decimals:(unit == MM ? 1 : 2), type:FORMAT_REAL});
+var feedFormat = createFormat({decimals:0});
 var inverseTimeFormat = createFormat({decimals:3, forceDecimal:true});
 var toolFormat = createFormat({decimals:0});
 var rpmFormat = createFormat({decimals:0});
