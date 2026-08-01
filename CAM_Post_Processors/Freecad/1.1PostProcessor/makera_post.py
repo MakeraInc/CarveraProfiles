@@ -152,6 +152,206 @@ MOTION_COMMANDS = [
     "G03",
 ]  # Motion gCode commands definition
 
+
+def _iter_path_objects(obj):
+    """Yield obj and every nested Group member (Job / Compound / Operation)."""
+    yield obj
+    if hasattr(obj, "Group"):
+        for child in obj.Group:
+            for nested in _iter_path_objects(child):
+                yield nested
+
+
+def collect_tool_controllers(objectslist):
+    """Return ToolControllers used by the posted objects, keyed by tool number."""
+    by_number = {}
+    jobs = set()
+
+    for root in objectslist:
+        for pathobj in _iter_path_objects(root):
+            tc = getattr(pathobj, "ToolController", None)
+            if tc is not None and hasattr(tc, "ToolNumber"):
+                by_number[int(tc.ToolNumber)] = tc
+
+            try:
+                job = PathUtils.findParentJob(pathobj)
+            except Exception:
+                job = None
+            if job is not None:
+                jobs.add(job)
+
+    for job in jobs:
+        tools = getattr(job, "Tools", None)
+        group = getattr(tools, "Group", None) if tools is not None else None
+        if not group:
+            continue
+        for tc in group:
+            if hasattr(tc, "ToolNumber"):
+                by_number.setdefault(int(tc.ToolNumber), tc)
+
+    return [by_number[number] for number in sorted(by_number)]
+
+
+def _quantity_value(value, unit):
+    """Convert a FreeCAD Quantity / number / unit-string to a float in `unit`."""
+    if value is None or value == "":
+        return None
+    try:
+        if hasattr(value, "getValueAs"):
+            return float(value.getValueAs(unit))
+        quantity = Units.Quantity(value)
+        if hasattr(quantity, "getValueAs"):
+            return float(quantity.getValueAs(unit))
+    except Exception:
+        pass
+    try:
+        return float(str(value).split()[0])
+    except Exception:
+        return None
+
+
+def _append_fc_field(parts, key, value, precision=None):
+    if value is None:
+        return
+    if isinstance(value, float):
+        if precision is not None:
+            text = format(value, "." + str(precision) + "f").rstrip("0").rstrip(".")
+        else:
+            text = format(value, ".6g")
+        if text == "-0":
+            text = "0"
+        parts.append("%s=%s" % (key, text))
+    else:
+        text = str(value).replace("|", "/").strip()
+        if text:
+            parts.append("%s=%s" % (key, text))
+
+
+def _tool_bit_dict(tool):
+    """Return ToolBit.to_dict() when available (parameters + attributes)."""
+    proxy = getattr(tool, "Proxy", None)
+    if proxy is None or not hasattr(proxy, "to_dict"):
+        return {}
+    try:
+        data = proxy.to_dict()
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _tool_type_name(tool, bit_dict):
+    """Return FreeCAD's native ShapeType (e.g. Endmill, Ballend, Drill).
+
+    Modern ToolBits always expose ShapeType. If it is missing, prefer the
+    serialized shape-type from to_dict(); otherwise emit unknown.
+    """
+    shape = getattr(tool, "ShapeType", None)
+    if shape:
+        return str(shape)
+
+    shape = bit_dict.get("shape-type")
+    if shape:
+        return str(shape)
+
+    return "unknown"
+
+
+def _tool_param(tool, bit_dict, *names):
+    """Prefer live ToolBit properties, then serialized parameters."""
+    parameters = bit_dict.get("parameter") or {}
+    for name in names:
+        if hasattr(tool, name):
+            value = getattr(tool, name)
+            if value is not None and value != "":
+                return value
+        if name in parameters and parameters[name] is not None and parameters[name] != "":
+            return parameters[name]
+    return None
+
+
+def format_tool_table_line(tool_controller):
+    """Build one (@FC|TOOL|k=v|...) comment for a ToolController."""
+    number = int(getattr(tool_controller, "ToolNumber", 0) or 0)
+    tool = getattr(tool_controller, "Tool", None)
+    if tool is None:
+        return "(@FC|TOOL|number=%d|type=unknown)" % number
+
+    bit_dict = _tool_bit_dict(tool)
+    attributes = bit_dict.get("attribute") or {}
+
+    name = (
+        attributes.get("Description")
+        or attributes.get("description")
+        or getattr(tool, "Label", None)
+        or getattr(tool_controller, "Label", "")
+    )
+    vendor = attributes.get("Vendor") or attributes.get("vendor") or ""
+    product_id = bit_dict.get("id") or attributes.get("ProductId") or ""
+    type_name = _tool_type_name(tool, bit_dict)
+
+    diameter = _quantity_value(_tool_param(tool, bit_dict, "Diameter"), UNIT_FORMAT)
+    shank = _quantity_value(
+        _tool_param(tool, bit_dict, "ShankDiameter", "ShaftDiameter"), UNIT_FORMAT
+    )
+    tip = _quantity_value(_tool_param(tool, bit_dict, "TipDiameter"), UNIT_FORMAT)
+    corner = _quantity_value(
+        _tool_param(tool, bit_dict, "CornerRadius", "FlatRadius", "CuttingRadius"),
+        UNIT_FORMAT,
+    )
+    flute = _quantity_value(
+        _tool_param(tool, bit_dict, "CuttingEdgeHeight", "CuttingEdgeLength"),
+        UNIT_FORMAT,
+    )
+    length = _quantity_value(_tool_param(tool, bit_dict, "Length"), UNIT_FORMAT)
+    shoulder = _quantity_value(
+        _tool_param(tool, bit_dict, "NeckLength", "ShoulderLength"), UNIT_FORMAT
+    )
+    pitch = _quantity_value(_tool_param(tool, bit_dict, "Pitch"), UNIT_FORMAT)
+    cutting_edge_angle = _quantity_value(
+        _tool_param(tool, bit_dict, "CuttingEdgeAngle", "cuttingAngle"), "deg"
+    )
+    tip_angle = _quantity_value(_tool_param(tool, bit_dict, "TipAngle"), "deg")
+    taper_angle = _quantity_value(_tool_param(tool, bit_dict, "TaperAngle"), "deg")
+
+    parts = ["@FC|TOOL"]
+    _append_fc_field(parts, "number", number)
+    _append_fc_field(parts, "name", name)
+    _append_fc_field(parts, "vendor", vendor)
+    _append_fc_field(parts, "id", product_id)
+    _append_fc_field(parts, "type", type_name)
+    _append_fc_field(parts, "diameter", diameter, PRECISION)
+    _append_fc_field(parts, "shankdiameter", shank, PRECISION)
+    _append_fc_field(parts, "tipdiameter", tip, PRECISION)
+    _append_fc_field(parts, "cornerradius", corner, PRECISION)
+    _append_fc_field(parts, "flutelength", flute, PRECISION)
+    _append_fc_field(parts, "shoulderlength", shoulder, PRECISION)
+    _append_fc_field(parts, "length", length, PRECISION)
+    _append_fc_field(parts, "pitch", pitch, PRECISION)
+    _append_fc_field(parts, "cuttingedgeangle", cutting_edge_angle, PRECISION)
+    _append_fc_field(parts, "tipangle", tip_angle, PRECISION)
+    _append_fc_field(parts, "taperangle", taper_angle, PRECISION)
+
+    return "(" + "|".join(parts) + ")"
+
+
+def dump_tool_table(objectslist):
+    """Return G-code comment lines describing every tool used in the job."""
+    controllers = collect_tool_controllers(objectslist)
+    if not controllers:
+        return ""
+
+    lines = []
+    for tool_controller in controllers:
+        try:
+            lines.append(format_tool_table_line(tool_controller) + "\n")
+        except Exception as exc:
+            FreeCAD.Console.PrintWarning(
+                "Failed to dump tool T%s: %s\n"
+                % (getattr(tool_controller, "ToolNumber", "?"), exc)
+            )
+    return "".join(lines)
+
+
 def processArguments(argstring):
     global OUTPUT_HEADER
     global OUTPUT_COMMENTS
@@ -235,6 +435,7 @@ def export(objectslist, filename, argstring):
         gcode += "(Exported by FreeCAD)\n"
         gcode += "(Post Processor: " + __name__ + ")\n"
         gcode += "(Output Time:" + str(now) + ")\n"
+        gcode += dump_tool_table(objectslist)
 
     # Write the preamble
     if OUTPUT_COMMENTS:
