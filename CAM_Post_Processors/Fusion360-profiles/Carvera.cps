@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.4.3";
+description = "Makera Carvera Community Post v1.4.4";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -1053,6 +1053,10 @@ function positionABC(abc, force) {
     }
     onCommand(COMMAND_UNLOCK_MULTI_AXIS);
     gMotionModal.reset();
+    var a_axis_offset = Math.floor(parseFloat(a.substring(1))/360) * 360;
+    if (!isNaN(a_axis_offset)) {
+      writeBlock("G92.4 A" + a_axis_offset + " S0 (shrink the a axis so A365 becomes A5)")
+    }
     writeBlock(gMotionModal.format(0), a, b, c);
     setCurrentABC(abc); // required for machine simulation
   }
