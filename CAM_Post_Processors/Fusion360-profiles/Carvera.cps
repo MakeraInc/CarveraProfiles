@@ -188,7 +188,7 @@ properties = {
     group      : "1. Preferences",
     type       : "enum",
     values     : [
-      {title:"Stock Air", id:"carvAirMtc"},
+      {title:"Stock Air/Z1", id:"carvAirMtc"},
       {title:"Stock C1", id:"error6"},
       {title:"Stock C1 with Manual Tool Changes", id:"fusionMtc"},
       {title:"Carvera Community", id:"carvcomMtc", description:"works on both the C1 and Air and allows the use of the collet changes and offset tool support."},
