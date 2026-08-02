@@ -30,8 +30,8 @@ DRY_RUN = args.dry_run
 # Output directories
 # ------------------------------------------------------------
 output_dir = "output"
-bit_dir = os.path.join(output_dir, "bit")
-library_dir = os.path.join(output_dir, "library")
+bit_dir = os.path.join(output_dir, "Bit")
+library_dir = os.path.join(output_dir, "Library")
 
 os.makedirs(bit_dir, exist_ok=True)
 os.makedirs(library_dir, exist_ok=True)
