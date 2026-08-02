@@ -39,8 +39,8 @@ real G-code suitable for a makera cnc machine with a smoothieware based controll
 in the appropriate PathScripts folder, can be used directly from inside
 FreeCAD, via the GUI importer or via python scripts with:
 
-import makera_post
-makera_post.export(object,"/path/to/file.ncc","")
+import makera_1_1_post
+makera_1_1_post.export(object,"/path/to/file.ncc","")
 """
 
 now = datetime.datetime.now()
@@ -596,6 +596,12 @@ def parse(pathobj):
         return out
     else:  # parsing simple path
 
+        # fix for custom gcode operations
+        if hasattr(pathobj, "Gcode"):
+            for line in pathobj.Gcode:
+                out += line.rstrip("\n") + "\n"
+            return out
+
         # groups might contain non-path things like stock.
         if not hasattr(pathobj, "Path"):
             return out
@@ -636,7 +642,7 @@ def parse(pathobj):
                                 )
                             )
                     elif param == "T":
-                        outstring.append(param + str(c.Parameters["T"]))
+                        outstring.append(param + str(int(c.Parameters["T"])))
                     elif param == "S":
                         outstring.append(param + str(c.Parameters["S"]))
                         SPINDLE_SPEED = c.Parameters["S"]
