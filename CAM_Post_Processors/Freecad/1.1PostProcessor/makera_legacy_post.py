@@ -39,8 +39,8 @@ real G-code suitable for a makera cnc machine with a smoothieware based controll
 in the appropriate PathScripts folder, can be used directly from inside
 FreeCAD, via the GUI importer or via python scripts with:
 
-import makera_1_1_post
-makera_1_1_post.export(object,"/path/to/file.ncc","")
+import makera_legacy_post
+makera_legacy_post.export(object,"/path/to/file.ncc","")
 """
 
 now = datetime.datetime.now()
