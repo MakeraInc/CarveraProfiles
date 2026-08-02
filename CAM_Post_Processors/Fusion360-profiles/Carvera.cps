@@ -10,7 +10,7 @@
   FORKID {D897E9AA-349A-4011-AA01-06B6CCC181EB}
 */
 
-description = "Makera Carvera Community Post v1.4.4";
+description = "Makera Carvera Community Post v1.4.5";
 
 vendor = "Makera";
 vendorUrl = "https://www.makera.com";
@@ -172,6 +172,14 @@ properties = {
     group      : "1. Preferences",
     type       : "boolean",
     value: true,
+    scope: "post"
+  },
+  skipM400Commands: {
+    title      : "Ignore M400 Commands - Temp Fix for Makera Studio",
+    description: "Makera Studio fails to parse M400 commands even though they are supported by the machine and helpful. This Setting fixes that problem, though air/ext on commands might not happen at the right time",
+    group      : "1. Preferences",
+    type       : "boolean",
+    value: false,
     scope: "post"
   },
   useExtForAirCoolant: {
@@ -418,34 +426,54 @@ function onParameter(name, value) {
     } else if (String(value).toUpperCase() == "RESETFEEDOVERRIDE"){
       writeBlock("M220 S100 (Reset Feed Speed override)")
     } else if (String(value).toUpperCase() == "AIRON"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M7 (Compressed Air On)")
     } else if (String(value).toUpperCase() == "AIROFF"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M9 (Compressed Air Off)")
     } else if (String(value).toUpperCase() == "VACON"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M801 S100 (Vacuum On)")
     } else if (String(value).toUpperCase() == "VACOFF"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M802 (Vacuum Off)")
     } else if (String(value).toUpperCase() == "AUTOVACON"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M331 (Turn On Auto Vacuum)")
     } else if (String(value).toUpperCase() == "AUTOVACOFF"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M332 (Turn Off Auto Vacuum)")
     } else if (String(value).toUpperCase() == "LIGHTON"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M821 (Turn On Light)")
     } else if (String(value).toUpperCase() == "LIGHTOFF"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M822 (Turn Off Light)")
     } else if (String(value).toUpperCase() == "EXTON"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M851 S100 (External Control On 100)")
     } else if (String(value).toUpperCase() == "EXTOFF"){
-      writeBlock("M400")
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock("M852 (External Control Off)")
     } else if (String(value).toUpperCase() == "SHRINKA"){
       writeBlock("G92.4 A0 S0 (shrink the a axis so A365 becomes A5)")
@@ -1348,7 +1376,9 @@ function onSection() {
       warning(localize("Spindle speed exceeds maximum value."));
     }
     if (getProperty("defaultUseExternalControl")) {
-      writeBlock(mFormat.format(400));
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock(mFormat.format(851), pwmOutput.format(100));
     }
     writeBlock(
@@ -1742,7 +1772,9 @@ function onCommand(command) {
     forceSpindleSpeed = true;
     forceCoolant = true;
     if (getProperty("defaultUseExternalControl")) {
-      writeBlock(mFormat.format(400));
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock(mFormat.format(852));
     }
     return;
@@ -1761,7 +1793,9 @@ function onCommand(command) {
     forceSpindleSpeed = true;
     forceCoolant = true;
     if (getProperty("defaultUseExternalControl")) {
-      writeBlock(mFormat.format(400));
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock(mFormat.format(852));
     }
     return;
@@ -1771,14 +1805,18 @@ function onCommand(command) {
     forceSpindleSpeed = true;
     forceCoolant = true;
     if (getProperty("defaultUseExternalControl")) {
-      writeBlock(mFormat.format(400));
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock(mFormat.format(852));
     }
     writeComment("Optional Stop End");
     return;
   case COMMAND_START_SPINDLE:
     if (getProperty("defaultUseExternalControl")) {
-      writeBlock(mFormat.format(400));
+      if(!getProperty("skipM400Commands")) {
+        writeBlock(mFormat.format(400));
+      }
       writeBlock(mFormat.format(851), pwmOutput.format(100));
     }
     onCommand(tool.clockwise ? COMMAND_SPINDLE_CLOCKWISE : COMMAND_SPINDLE_COUNTERCLOCKWISE);
@@ -1906,13 +1944,13 @@ function getCoolantCodes(coolant) {
     m = !coolantOff ? coolantCodes.off : coolantOff;
     if (currentCoolantMode == COOLANT_AIR && getProperty("useExtForAirCoolant")) {
       currentCoolantMode = coolant;
-      return [mFormat.format(400), mFormat.format(852)];
+      return [getProperty("skipM400Commands") ? "": mFormat.format(400), mFormat.format(852)];
     }
   } else {
     coolantOff = coolantCodes.off;
     if (coolant == COOLANT_AIR && getProperty("useExtForAirCoolant")) {
       currentCoolantMode = coolant;
-      return [mFormat.format(400), "M851S100"];
+      return [getProperty("skipM400Commands") ? "": mFormat.format(400), "M851S100"];
     }
 
     m = coolantCodes.on;
