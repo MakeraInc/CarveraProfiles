@@ -31,6 +31,7 @@ from Path.Post.CAMErrors import CAMValueError
 
 import Path
 import FreeCAD
+import fnmatch
 from FreeCAD import Units
 from Machine.models.machine import OutputUnits
 
@@ -195,30 +196,21 @@ class Makera_26_Mch(PostProcessor):
     # every tool used by the job, in the header. This is consumed by
     # downstream shop-floor tooling to know which tools a program needs
     # before it's run.
-
+    tool_controllers = None
+    
     def _build_header(self, postables):
-        """Replace the stock "(T1=...)" tool listing with our richer
-        "(T1=@FC|TOOL|...)" dump, in the exact same header slot (right
-        after "Output Time", before the preamble)."""
         gcodeheader = super()._build_header(postables)
+        gcodeheader.Path.Commands.append('test')
 
         if self.values["OUTPUT_HEADER"] and self.values.get("LIST_TOOLS_IN_HEADER", True):
-            tool_controllers = self._collect_tool_controllers(postables)
-            if tool_controllers:
-                gcodeheader._tools = [
-                    (int(getattr(tc, "ToolNumber", 0) or 0), self._tool_header_entry(tc))
-                    for tc in tool_controllers
-                ]
+            self.tool_controllers = self._collect_tool_controllers(postables)
 
         return gcodeheader
 
     def _tool_header_entry(self, tool_controller):
-        """Rich tool descriptor for the header, minus the leading "number="
-        field (redundant since it's already the T{n}= key) and outer parens
-        (the header builder supplies those itself)."""
+        """Rich tool descriptor for the header"""
         line = self._format_tool_table_line(tool_controller)  # "(@FC|TOOL|number=N|...)"
-        inner = line[1:-1]
-        fields = [f for f in inner.split("|") if not f.startswith("number=")]
+        fields = [f for f in line.split("|")]
         return "|".join(fields)
 
     def _collect_tool_controllers(self, postables):
@@ -402,18 +394,34 @@ class Makera_26_Mch(PostProcessor):
         return "(" + "|".join(parts) + ")"
 
     lastop = None
-    
+    writingHeader = True
+    controller = 0
     def convert_command_to_gcode(self, command: Path.Command):
+        if self._operation is None and self.writingHeader:
+            pattern = '(T*=*'
+            commandname = command.Name
+            if fnmatch.fnmatch(commandname, pattern):
+                if commandname.find('='):
+                    if self.values["OUTPUT_HEADER"] and self.values.get("LIST_TOOLS_IN_HEADER", True):
+                        out = self._tool_header_entry(self.tool_controllers[self.controller])
+                        self.controller += 1
+                        return out
+                
+        else:
+            self.writingHeader = False
         if self._is_custom_gcode_operation():
             op = self._operation
             
             if op == self.lastop:
                 return ""
             self.lastop = op
-            
-            out = ""
+            #revert modal state
+            for key in self._modal_state:
+                self._modal_state[key] = None
+            out = '(Custom: ' + op.Label + ')\n'
             for line in getattr(op, "Gcode"):
                 out += line + '\n'
+            out += '(End '+ op.Label + ')\n'
             return out
             #return command.toGCode()
 
