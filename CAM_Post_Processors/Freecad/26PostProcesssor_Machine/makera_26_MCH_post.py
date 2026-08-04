@@ -49,7 +49,6 @@ Values = Dict[str, Any]
 
 POST_TYPE = "machine"
 
-
 class Makera_26_Mch(PostProcessor):
     """
     The Makera CNC post processor class.
@@ -76,7 +75,7 @@ class Makera_26_Mch(PostProcessor):
             elif prop["name"] == "preamble":
                 prop["default"] = "G90 G94\nG17"
             elif prop["name"] == "postamble":
-                prop["default"] = "M05\nG17 G90\nG28\nM30"
+                prop["default"] = "M05\nG17 G90\nG28\nM30\n"
             elif prop["name"] == "pre_tool_change":
                 # Stop the spindle before every tool change.
                 prop["default"] = "M05"
@@ -116,6 +115,36 @@ class Makera_26_Mch(PostProcessor):
                 ),
             },
             {
+                "name": "ext_onOffAtStartAndEnd",
+                "type": "bool",
+                "label": translate("CAM", "Turn On Ext Port at the start of the file and off at the end of the file"),
+                "default": False,
+                "help": translate(
+                    "CAM", "Turn On Ext Port When Spindle is On"
+                ),
+            },
+            {
+                "name": "ext_for_air",
+                "type": "bool",
+                "label": translate("CAM", "Turn On Ext Port When Mist Coolant On"),
+                "default": False,
+                "help": translate(
+                    "CAM", "Turn On Ext Port instead of running a M7 command When Mist Coolant is On"
+                ),
+            },
+            {
+                "name": "ext_port_percent",
+                "type": "float",
+                "label": translate("CAM", "Percentage for Ext Port when Used With Spindle or Air"),
+                "default": 80,
+                "min": 0.0,
+                "max": 100.0,
+                "decimals": 1,
+                "help": translate(
+                    "CAM", "Percentage for Ext Port when Used With Spindle or Air"
+                ),
+            },
+            {
                 "name": "min_feed_rate",
                 "type": "float",
                 "label": translate("CAM", "Minimum Feed Rate"),
@@ -151,6 +180,9 @@ class Makera_26_Mch(PostProcessor):
         tooltip=translate("CAM", "Makera CNC post processor"),
         tooltipargs=[],
         units="Metric",
+        tool_controllers = None,
+        lastop = None,
+        
     ):
         super().__init__(
             job=job,
@@ -196,7 +228,7 @@ class Makera_26_Mch(PostProcessor):
     # every tool used by the job, in the header. This is consumed by
     # downstream shop-floor tooling to know which tools a program needs
     # before it's run.
-    tool_controllers = None
+    
     
     def _build_header(self, postables):
         gcodeheader = super()._build_header(postables)
@@ -206,7 +238,7 @@ class Makera_26_Mch(PostProcessor):
             self.tool_controllers = self._collect_tool_controllers(postables)
 
         return gcodeheader
-
+    
     def _tool_header_entry(self, tool_controller):
         """Rich tool descriptor for the header"""
         line = self._format_tool_table_line(tool_controller)  # "(@FC|TOOL|number=N|...)"
@@ -393,22 +425,60 @@ class Makera_26_Mch(PostProcessor):
 
         return "(" + "|".join(parts) + ")"
 
-    lastop = None
-    writingHeader = True
-    controller = 0
-    def convert_command_to_gcode(self, command: Path.Command):
-        if self._operation is None and self.writingHeader:
-            pattern = '(T*=*'
-            commandname = command.Name
-            if fnmatch.fnmatch(commandname, pattern):
-                if commandname.find('='):
-                    if self.values["OUTPUT_HEADER"] and self.values.get("LIST_TOOLS_IN_HEADER", True):
-                        out = self._tool_header_entry(self.tool_controllers[self.controller])
-                        self.controller += 1
-                        return out
+    def _expand_prefix(self, postables):
+        """Add prefix to each section"""
+
+        # collect in order
+        prefix = []
+
+        # must be first
+        # optimization can start after _build_header lines
+        prefix.append(self._make_postable("Post: start optimizable", [], {"optimizable": False}))
+
+        # SAFETYBLOCK
+        # must be before any possible commands
+        if (lines := self.values["SAFETYBLOCK"]) is not None and lines != "":
+            prefix.append(self._make_postable("Post: safetyblock", lines))
+
+        # OUTPUT_HEADER
+        gcodeheader = self._build_header(postables)
+        if commands := gcodeheader.Path.Commands:
+            prefix.append(self._make_postable("Post: header", commands))
+        
+        controllers = self.tool_controllers
+        for tool_controller in controllers:
+            try:
+                prefix.append(self._make_postable("", self._format_tool_table_line(tool_controller) + "\n"))
+            except Exception as exc:
+                FreeCAD.Console.PrintWarning("Failed to dump tool T%s: %s\n" % (getattr(tool_controller, "ToolNumber", "?"), exc))
+        
+        
+        # optimization can start now
+        prefix.append(self._make_postable("Post: start optimizable", [], {"optimizable": True}))
+        
                 
-        else:
-            self.writingHeader = False
+        # PREAMBLE
+        if (lines := self.values["PREAMBLE"]) is not None and lines != "":
+            prefix.append(self._make_postable("Post: preamble", lines))
+            
+        
+
+        # OUTPUT_UNITS
+        if unit_command := self._collect_unit_command():
+            prefix.append(self._make_postable("Post: units", unit_command))
+
+        # FIXME: PRE_JOB should be per-job, but there is no 'job' item, so fallback to every section
+        # see _expand_pre_job()
+        if (lines := self.values["PRE_JOB"]) is not None and lines != "":
+            prefix.append(self._make_postable("Post: prejob", lines))
+
+        for _, section in postables:
+            if prefix:
+                section[:0] = prefix  # prepend
+
+    
+    def convert_command_to_gcode(self, command: Path.Command):
+        props = self._machine.postprocessor_properties
         if self._is_custom_gcode_operation():
             op = self._operation
             
@@ -424,8 +494,29 @@ class Makera_26_Mch(PostProcessor):
             out += '(End '+ op.Label + ')\n'
             return out
             #return command.toGCode()
-
+       
+        if command.Name == 'M7' and props.get("ext_for_air", False):
+            return "\nM851 S" + str(props.get("ext_port_percent", 80)) + "\n" + super().convert_command_to_gcode(command) + "\n"
+        if command.Name == 'M9' and props.get("ext_for_air", False):
+            return "M852\n" + super().convert_command_to_gcode(command) + "\n"
+        
         return super().convert_command_to_gcode(command)
+
+    def _expand_trailing_lines(self, postables):
+        """Append post_job and postamble lines, to each section."""
+        trailing = []
+        if (lines := self.values["POST_JOB"]) is not None and lines != "":
+            trailing.append(self._make_postable("Post: post_job", lines))
+        if self._machine.postprocessor_properties.get("ext_onOffAtStartAndEnd", False):
+            trailing.append(self._make_postable("","M852"))
+        if (lines := self.values["POSTAMBLE"]) is not None and lines != "":
+            trailing.append(self._make_postable("Post: postamble", lines))
+
+        if trailing:
+            for _, section in postables:
+                section.extend(trailing)
+
+
 
     def _is_custom_gcode_operation(self):
         op = self._operation
