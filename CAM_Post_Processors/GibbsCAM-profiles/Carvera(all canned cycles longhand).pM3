@@ -1,0 +1,166 @@
+name Carvera(all canned cycles longhand)
+
+
+
+
+Replace "e01" with "(SELECT FIRST TOOL)"
+Replace "e02" with "(END OF PROGRAM)"
+Replace "e03" with "(TOOL CHANGE)"
+
+Replace "S9999" with "B0.S9999"
+
+
+/ 00
+O 4
+N 0
+G >2
+g >2 G
+X ->3.>4
+x ->3.>4 X   "x", "y" and "z" for G91/G28 lines: Startcode, TC, Endcode.
+Y ->3.>4
+y ->3.>4 Y
+Z ->3.>4
+z ->3.>4 Z
+I ->3.>4
+J ->3.>4
+K ->3.>4
+Q ->3.>3
+R ->3.>3
+P >3.>2
+F >3.>3
+H >2
+D >2
+T >2
+S >4
+M >2
+e 2      Used for comments @ end of line.
+
+
+ModalLetters X Y Z F                    List of letters that are modal    
+
+ModalGs 0 1 2 3 73 74 76 80 81 82 83 84 85    List of g codes that are modal    
+
+Sequence#s  N 1 1 1                      Char, freq, incr & start          
+First#? N                              Output 1st sequence no.  
+Last#? N                                Output last sequence no. 
+
+HCode X                               Hor. axis letter       
+VCode Y                               Vert. axis letter         
+Dcode Z                                 Depth char.                       
+FeedCode F                              Feed rate char.                   
+
+Comment ( )                             Begin End comment char.           
+
+Spindle 3 4 5                           Cw, ccw & stop m codes            
+Coolant 8 9 7                           On, Off & Mist m codes            
+DComp 41 42 40                          Left, Right & Cancel m codes      
+
+Feed G1                               Linear move                       
+Rapid G0                              Rapid positioning word            
+Cw G2                                 Circular move clockwise           
+Ccw G3                                Circular move counter clockwise   
+
+Inc/Abs G 91 90                         Inc & Abs char. & values          
+
+CtrCode I J                             I J or R or I J K L               
+Helical? Y
+
+Spaces? N                               Spaces between words     
+
+Incremental? N                          Inc or abs output        
+CtrIncremental? Y                       Inc or abs I & J         
+ByQuadrants? N                          Break arcs at quadrants  
+
+UppercaseComments? Y                    Y or N 'Require uppercase comments
+
+Drill                                   Drilling cycle      
+G0 X[H] Y[V] 
+Z[RLevel]
+G1 Z[D] F[FRate] 
+G0 Z[ILevel]
+end 
+
+Peck               "Full retract" peck drilling
+none
+end 
+
+Chipbreak         "Partial retract" peck drilling 
+none
+end 
+
+   Tap             Tapping cycle       
+   
+   end 
+
+  LTap                                    Left handed tapping cycle         
+  
+  end 
+
+Ream                                    Reaming cycle       
+G0 X[H] Y[V] 
+Z[RLevel]
+G1 Z[D] F[FRate] 
+G1 Z[RLevel]
+G0 Z[ILevel]
+end 
+
+Bore                                    Boring cycle        
+G0 X[H] Y[V] 
+Z[RLevel]
+G1 Z[D] F[FRate] 
+G1 Z[RLevel]
+G0 Z[ILevel]
+end 
+
+Back                                    Back boring cycle   
+G0 X[H] Y[V] 
+Z[RLevel]
+G1 Z[D] F[FRate] 
+G1 Z[RLevel]
+G0 Z[ILevel]
+end 
+
+Cancel                                  Cancel a cycle      
+G80
+end
+
+
+
+
+StartCode                               Start of the program              
+G90
+G00 G53 Z-5
+G54
+End
+
+1stToolChange                           First tool change                 
+T[Tool] M06
+S[Speed] M03
+
+End
+
+Infeed                                  Enable cutter comp                
+G1 Z[D] F[Plunge]
+G[Side] X[H] Y[V] D[DComp] F[FRate]
+end
+
+Outfeed                                 Disable cutter comp               
+G1 G40 X[H] Y[V]
+end
+
+ToolChange                              Secondary tool changes            
+M05
+T[Tool] M06
+S[Speed] M03
+End
+
+EndCode                                 End of the program                
+M05
+G00 G53 Z-5
+G00 G53 Z-10 Y-10
+
+
+e2      (END OF PROGRAM)
+M30
+End
+

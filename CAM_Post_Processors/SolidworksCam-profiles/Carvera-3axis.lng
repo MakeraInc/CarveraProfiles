@@ -1,0 +1,159 @@
+DRILLING                                                              :0001:
+SPOT_DRILLING                                                         :0002:
+PECKING                                                               :0003:
+TAPPING                                                               :0004:
+BORING                                                                :0005:
+HIGH_SPEED_PECKING                                                    :0006:
+VARIABLE_PECKING                                                      :0007:
+REVERSE_TAPPING                                                       :0008:
+REAMING                                                               :0009:
+REAMING_DWELL                                                         :0010:
+BORE_DWELL                                                            :0011:
+BACK_BORING                                                           :0012:
+FINE_BORING                                                           :0013:
+MILL_LACE                                                             :0014:
+MILL_POCKET                                                           :0015:
+MILL_PROFILING                                                        :0016:
+MILL_MISC                                                             :0017:
+MILL_UV_CUT                                                           :0018:
+MILL_SLICE_CUT                                                        :0019:
+MILL_ROUGH_CUT                                                        :0020:
+MILL_CURVE_CUT                                                        :0021:
+MILL_TOPO_CUT                                                         :0022:
+MILL_FREEFORM_CUT                                                     :0023:
+MILL_PENCIL_CUT                                                       :0024:
+Post Program Stop                                                     :0025:
+Machine Name                                                          :0026:
+                                                                      :0027:
+Controller Type                                                       :0028:
+                                                                      :0029:
+Z Home                                                                :0030:
+                                                                      :0031:
+Traverse Rate                                                         :0032:
+                                                                      :0033:
+System License Number                                                 :0034:
+                                                                      :0035:
+System License Expiration                                             :0036:
+                                                                      :0037:
+Part Thickness                                                        :0038:
+ENTER Part Thickness                                                  :0039:
+Absolute Incremental                                                  :0040:
+SELECT Absolute Incremental                                           :0041:
+Absolute                                                              :0042:
+Incremental                                                           :0043:
+Work Coordinate 54 - 59                                               :0044:
+ENTER Work Coordinate 54 - 59                                         :0045:
+Coolant                                                               :0046:
+SELECT Coolant                                                        :0047:
+Off                                                                   :0048:
+Flood                                                                 :0049:
+Mist                                                                  :0050:
+Through Hole                                                          :0051:
+Y Tool Change                                                         :0052:
+ENTER Y Tool Change Position                                          :0053:
+Dwell                                                                 :0054:
+ENTER Dwell                                                           :0055:
+Rigid Tap On or Off                                                   :0056:
+SELECT Rigid Tap On or Off                                            :0057:
+On                                                                    :0058:
+Off                                                                   :0059:
+X Tool Change                                                         :0060:
+ENTER X Tool Change Position                                          :0061:
+Shift Amount                                                          :0062:
+ENTER Shift Amount                                                    :0063:
+Compensation                                                          :0064:
+SELECT Compensation                                                   :0065:
+On                                                                    :0066:
+Off                                                                   :0067:
+Left                                                                  :0068:
+Right                                                                 :0069:
+Display Tool Offset                                                   :0070:
+SELECT Display Tool Offset                                            :0071:
+Yes                                                                   :0072:
+No                                                                    :0073:
+Auto Angle Pair                                                       :0074:
+SELECT Auto Angle Pair                                                :0075:
+False                                                                 :0076:
+True                                                                  :0077:
+Other Angle Pair                                                      :0078:
+SELECT Other Angle Pair                                               :0079:
+False                                                                 :0080:
+True                                                                  :0081:
+Angle Change Limit                                                    :0082:
+ENTER Angle Change Limit                                              :0083:
+Interpolation Angle Step                                              :0084:
+ENTER Interpolation Angle Step                                        :0085:
+Interpolation For Distanc                                             :0086:
+SELECT Interpolation For Distanc                                      :0087:
+False                                                                 :0088:
+True                                                                  :0089:
+Interpolation Distance                                                :0090:
+ENTER Interpolation Distance                                          :0091:
+Tool Retract Distance                                                 :0092:
+ENTER Tool Retract Distance                                           :0093:
+Pole Angle Tolerance                                                  :0094:
+ENTER Pole Angle Tolerance                                            :0095:
+Auto Pole Handling                                                    :0096:
+SELECT Auto Pole Handling                                             :0097:
+False                                                                 :0098:
+True                                                                  :0099:
+Pole Handling                                                         :0100:
+SELECT Pole Handling                                                  :0101:
+Freeze Angle Around Pole                                              :0102:
+Use Rotation Angle Around                                             :0103:
+Linear Interpolation                                                  :0104:
+Smooth Interpolation                                                  :0105:
+Force Head and Table Rota                                             :0106:
+Interpolation Type                                                    :0107:
+SELECT Interpolation Type                                             :0108:
+By Vector                                                             :0109:
+By Machine Angle                                                      :0110:
+Retract and Rewind                                                    :0111:
+SELECT Retract and Rewind                                             :0112:
+False                                                                 :0113:
+True                                                                  :0114:
+Rewind Angle                                                          :0115:
+ENTER Rewind Angle                                                    :0116:
+Best Rotary Axis Solution                                             :0117:
+SELECT Best Rotary Axis Solution                                      :0118:
+Auto                                                                  :0119:
+4th Axis Rotary Angle                                                 :0120:
+5th Axis Rotary Angle                                                 :0121:
+Best Solution Rotary Angl                                             :0122:
+ENTER Best Solution Rotary Angle                                      :0123:
+Using Machine Limits                                                  :0124:
+SELECT Using Machine Limits                                           :0125:
+False                                                                 :0126:
+True                                                                  :0127:
+Program/Optional Stop                                                 :0128:
+SELECT Program/Optional Stop                                          :0129:
+Program Stop                                                          :0130:
+Optional Stop                                                         :0131:
+Program number                                                        :0132:
+ENTER Program number                                                  :0133:
+Material                                                              :0134:
+ENTER Material Type                                                   :0135:
+5axis Arc Deviation                                                   :0136:
+ENTER 5axis Arc Deviation                                             :0137:
+Sub Work Coordinate 1 - 1                                             :0138:
+ENTER Sub Work Coordinate 1 - 100                                     :0139:
+Fixture Offset                                                        :0140:
+ENTER Fixture Offset                                                  :0141:
+Tool Holder Length                                                    :0142:
+ENTER Tool Holder Length                                              :0143:
+Sign Angle A                                                          :0144:
+SELECT Sign Angle A                                                   :0145:
+A+                                                                    :0146:
+A-                                                                    :0147:
+|(|MACHINE=                                                           :0148:
+|)                                                                    :0149:
+|(|CONTROLLER=                                                        :0150:
+|)                                                                    :0151:
+|(|PART|NAME=                                                         :0152:
+|)                                                                    :0153:
+|(|PROGRAM|NUMBER=                                                    :0154:
+|)                                                                    :0155:
+|(|MATERIAL=                                                          :0156:
+|)                                                                    :0157:
+|(|THICKNESS=                                                         :0158:
+|)                                                                    :0159:
