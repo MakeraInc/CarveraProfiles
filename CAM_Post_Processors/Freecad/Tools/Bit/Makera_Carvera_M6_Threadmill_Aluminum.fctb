@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "id": "Makera_Carvera_M6_Threadmill_Aluminum",
   "name": "Makera_Carvera M6 Threadmill_Aluminum",
   "shape": "thread-mill.fcstd",
   "shape-type": "ThreadMill",
@@ -11,6 +12,8 @@
     "Length": "50.000 mm",
     "Pitch": "1.000 mm",
     "cuttingAngle": "60",
+    "NeckDiameter": "3.068 mm",
+    "NeckLength": "18.000 mm",
     "ShankDiameter": "6",
     "Material": "Carbide",
     "Flutes": "3"

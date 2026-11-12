@@ -1,7 +1,8 @@
 {
   "version": 2,
+  "id": "Makera_Spiral_O_3.175_17mm_Plastic",
   "name": "Makera_Spiral O 3.175*17mm_Plastic",
-  "shape": "Endmill.fcstd",
+  "shape": "endmill.fcstd",
   "shape-type": "Endmill",
   "parameter": {
     "Chipload": "0.100 mm",

@@ -1,7 +1,8 @@
 {
   "version": 2,
+  "id": "Makera_Spiral_O_Metal_4_17m_Copper",
   "name": "Makera_Spiral O Metal 4*17m_Copper",
-  "shape": "Endmill.fcstd",
+  "shape": "endmill.fcstd",
   "shape-type": "Endmill",
   "parameter": {
     "Chipload": "25.00 \u00b5m",

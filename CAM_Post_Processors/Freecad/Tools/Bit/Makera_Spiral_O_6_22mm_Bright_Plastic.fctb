@@ -1,7 +1,8 @@
 {
   "version": 2,
+  "id": "Makera_Spiral_O_6_22mm_Bright_Plastic",
   "name": "Makera_Spiral O 6*22mm Bright_Plastic",
-  "shape": "Endmill.fcstd",
+  "shape": "endmill.fcstd",
   "shape-type": "Endmill",
   "parameter": {
     "Chipload": "0.100 mm",

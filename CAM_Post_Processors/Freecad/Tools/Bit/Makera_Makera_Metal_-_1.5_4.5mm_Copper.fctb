@@ -1,7 +1,8 @@
 {
   "version": 2,
+  "id": "Makera_Makera_Metal_-_1.5_4.5mm_Copper",
   "name": "Makera_Makera Metal - 1.5*4.5mm_Copper",
-  "shape": "Ballend.fcstd",
+  "shape": "ballend.fcstd",
   "shape-type": "Ballend",
   "parameter": {
     "Chipload": "20.83 \u00b5m",

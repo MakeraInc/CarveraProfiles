@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "id": "Makera_Carvera_M4_Threadmill_Brass",
   "name": "Makera_Carvera M4 Threadmill_Brass",
   "shape": "thread-mill.fcstd",
   "shape-type": "ThreadMill",
@@ -11,6 +12,8 @@
     "Length": "38.000 mm",
     "Pitch": "0.700 mm",
     "cuttingAngle": "60",
+    "NeckDiameter": "1.938 mm",
+    "NeckLength": "12.000 mm",
     "ShankDiameter": "3.175",
     "Material": "Carbide",
     "Flutes": "3"

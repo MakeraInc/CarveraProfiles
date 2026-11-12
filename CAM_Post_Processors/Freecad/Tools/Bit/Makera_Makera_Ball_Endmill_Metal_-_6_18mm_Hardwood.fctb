@@ -1,7 +1,8 @@
 {
   "version": 2,
+  "id": "Makera_Makera_Ball_Endmill_Metal_-_6_18mm_Hardwood",
   "name": "Makera_Makera Ball Endmill Metal - 6*18mm_Hardwood",
-  "shape": "Ballend.fcstd",
+  "shape": "ballend.fcstd",
   "shape-type": "Ballend",
   "parameter": {
     "Chipload": "20.83 \u00b5m",

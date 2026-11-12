@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "id": "Makera_Carvera_M1_Threadmill_Softwood",
   "name": "Makera_Carvera M1 Threadmill_Softwood",
   "shape": "thread-mill.fcstd",
   "shape-type": "ThreadMill",
@@ -11,6 +12,8 @@
     "Length": "38.000 mm",
     "Pitch": "0.250 mm",
     "cuttingAngle": "60",
+    "NeckDiameter": "0.297 mm",
+    "NeckLength": "3.000 mm",
     "ShankDiameter": "3.175",
     "Material": "Carbide",
     "Flutes": "3"
